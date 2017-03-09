@@ -26,12 +26,6 @@ root.tk.call('tk', 'scaling', 2.0)
 root.title("lf-tracking")
 root.configure(background=BG_COLOR)
 
-img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + "1_1.jpg"))
-panel1 = tk.Label(root, image=img)
-panel1.pack(side="left", fill="both", expand="yes")
-panel2 = tk.Label(root, image=img)
-panel2.pack(side="right", fill="both", expand="yes")
-
 
 def clamp(x, minimum, maximum):
     return max(minimum, min(maximum, x))
@@ -46,8 +40,32 @@ class ImageMatrix:
         self.curImgX = imgX
         self.curImgY = imgY
         self.unit = unit
-    
-    def move(self, diffX, diffY):
+        self.clickX = 0
+        self.clickY = 0
+        self.initPanels()
+
+    def initPanels(self):
+        self.panel1 = tk.Label(root)
+        self.panel1.pack(side="left", fill="both", expand="yes")
+        self.panel2 = tk.Label(root)
+        self.panel2.pack(side="right", fill="both", expand="yes")
+
+        self.panel1.bind('<Button-1>', self.click)
+        self.panel1.bind('<B1-Motion>', self.move)
+        self.panel2.bind('<Button-1>', self.click)
+        self.panel2.bind('<B1-Motion>', self.move)
+        self.updateImages()
+
+    def click(self, event):
+        self.clickX, self.clickY = (event.x, event.y)
+        self.baseImgX = self.curImgX
+        self.baseImgY = self.curImgY
+        return
+
+    def move(self, event):
+        diffX = self.clickX - event.x
+        diffY = self.clickY - event.y
+
         imgDiffX = int(round(diffX / float(self.unit)))
         imgDiffY = int(round(diffY / float(self.unit)))
 
@@ -62,40 +80,14 @@ class ImageMatrix:
         imgPath = IMG_PATH_PREFIX + '{}_{}.jpg'.format(self.curImgX, self.curImgY)
 
         newImg = ImageTk.PhotoImage(Image.open(imgPath))
-        panel1.configure(image=newImg)
-        panel1.image = newImg
-        panel2.configure(image=newImg)
-        panel2.image = newImg
-
-    def release(self, event):
-        self.baseImgX = self.curImgX
-        self.baseImgY = self.curImgY
+        self.panel1.configure(image=newImg)
+        self.panel1.image = newImg
+        self.panel2.configure(image=newImg)
+        self.panel2.image = newImg
 
 
 imgMatrix = ImageMatrix(3, 3, 1, 1, 100)
 
-
-class Mouse:
-    def __init__(self):
-        self.clickX = 0
-        self.clickY = 0
-
-    def click(self, event):
-        self.clickX, self.clickY = (event.x, event.y)
-        return
-
-    def move(self, event):
-        imgMatrix.move(self.clickX - event.x, self.clickY - event.y)
-        return
-
-
-mouse = Mouse()
-panel1.bind('<Button-1>', mouse.click)
-panel1.bind('<B1-Motion>', mouse.move)
-panel1.bind('<ButtonRelease-1>', imgMatrix.release)
-panel2.bind('<Button-1>', mouse.click)
-panel2.bind('<B1-Motion>', mouse.move)
-panel2.bind('<ButtonRelease-1>', imgMatrix.release)
 
 app = FullScreenApp(root)
 root.mainloop()
