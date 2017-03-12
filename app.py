@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import ImageTk, Image
+import datetime
 
 BG_COLOR = "grey"
 IMG_PATH_PREFIX = "img/"
@@ -42,6 +43,8 @@ class ImageMatrix:
         self.unit = unit
         self.clickX = 0
         self.clickY = 0
+        self.prevTime = 0
+        self.curTime = 0
         self.initPanels()
 
     def initPanels(self):
@@ -77,16 +80,24 @@ class ImageMatrix:
             self.updateImages()
 
     def updateImages(self):
-        imgPath = IMG_PATH_PREFIX + '{}_{}.jpg'.format(self.curImgX, self.curImgY)
+        imgName = '{}_{}.jpg'.format(self.curImgX, self.curImgY)
 
-        newImg = ImageTk.PhotoImage(Image.open(imgPath))
+        newImg = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX+imgName))
         self.panel1.configure(image=newImg)
         self.panel1.image = newImg
         self.panel2.configure(image=newImg)
         self.panel2.image = newImg
 
+        self.prevTime = self.curTime
+        self.curTime = datetime.datetime.now()
 
-imgMatrix = ImageMatrix(3, 3, 1, 1, 100)
+        if(self.prevTime != 0):
+            print("end: {}  duration: {}".format(self.curTime.strftime('%H:%M:%S.%f'), self.curTime-self.prevTime))
+
+        print("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')), end='', flush=True)
+
+
+imgMatrix = ImageMatrix(3, 3, 1, 1, 60)
 
 
 app = FullScreenApp(root)
