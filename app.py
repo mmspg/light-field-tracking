@@ -4,6 +4,7 @@ import datetime
 
 BG_COLOR = "grey"
 IMG_PATH_PREFIX = "img/"
+f = open('output.txt', 'w')
 
 
 class FullScreenApp(object):
@@ -82,7 +83,7 @@ class ImageMatrix:
     def updateImages(self):
         imgName = '{}_{}.jpg'.format(self.curImgX, self.curImgY)
 
-        newImg = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX+imgName))
+        newImg = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + imgName))
         self.panel1.configure(image=newImg)
         self.panel1.image = newImg
         self.panel2.configure(image=newImg)
@@ -91,14 +92,25 @@ class ImageMatrix:
         self.prevTime = self.curTime
         self.curTime = datetime.datetime.now()
 
-        if(self.prevTime != 0):
-            print("end: {}  duration: {}".format(self.curTime.strftime('%H:%M:%S.%f'), self.curTime-self.prevTime))
+        if (self.prevTime != 0):
+            f.write(
+                "end: {}  duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), self.curTime - self.prevTime))
 
-        print("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')), end='', flush=True)
+        f.write("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')))
+
+    def close(self):
+        self.prevTime = self.curTime
+        self.curTime = datetime.datetime.now()
+
+        f.write("end: {}  duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), self.curTime - self.prevTime))
+        f.flush()
+        f.close()
+        root.quit()
 
 
 imgMatrix = ImageMatrix(3, 3, 1, 1, 60)
 
+root.protocol("WM_DELETE_WINDOW", imgMatrix.close)
 
 app = FullScreenApp(root)
 root.mainloop()
