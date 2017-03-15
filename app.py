@@ -51,8 +51,9 @@ class ImageMatrix:
         self.width = width
         self.height = height
         self.baseImg = baseImg
+        self.prevImg = baseImg
         self.curImg = baseImg
-        self.imgDuration = [[0.0 for x in range(height)] for y in range(width)]
+        self.imgDuration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
         self.unit = unit
         self.clickPos = Point(0,0)
         self.prevTime = 0
@@ -88,6 +89,7 @@ class ImageMatrix:
         newImg = Point(newImgX, newImgY)
 
         if (newImg != self.curImg):
+            self.prevImg = self.curImg
             self.curImg = newImg
             self.updateImages()
 
@@ -100,20 +102,25 @@ class ImageMatrix:
         self.panel2.configure(image=newImg)
         self.panel2.image = newImg
 
+        self.writeEndDuration()
+
+        f.write("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')))
+
+    def writeEndDuration(self):
         self.prevTime = self.curTime
         self.curTime = datetime.datetime.now()
 
         if (self.prevTime != 0):
             duration = self.curTime - self.prevTime
-            f.write("end: {}  duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), duration))
+            self.imgDuration[self.prevImg.y][self.prevImg.x] += duration
+            totalDuration = self.imgDuration[self.prevImg.y][self.prevImg.x]
 
-        f.write("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')))
+            f.write("end: {}  duration: {}  total duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), duration,
+                                                                         totalDuration))
 
     def close(self):
-        self.prevTime = self.curTime
-        self.curTime = datetime.datetime.now()
+        self.writeEndDuration()
 
-        f.write("end: {}  duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), self.curTime - self.prevTime))
         f.flush()
         f.close()
         root.quit()
