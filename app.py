@@ -30,7 +30,9 @@ root.configure(background=BG_COLOR)
 
 
 def clamp(x, minimum, maximum):
+    assert (minimum <= maximum)
     return max(minimum, min(maximum, x))
+
 
 class Point:
     def __init__(self, x, y):
@@ -46,21 +48,22 @@ class Point:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class ImageMatrix:
-    def __init__(self, width, height, baseImg, unit):
+    def __init__(self, width, height, base_img, unit):
         self.width = width
         self.height = height
-        self.baseImg = baseImg
-        self.prevImg = baseImg
-        self.curImg = baseImg
-        self.imgDuration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
+        self.base_img = base_img
+        self.prev_img = base_img
+        self.cur_img = base_img
         self.unit = unit
-        self.clickPos = Point(0,0)
-        self.prevTime = 0
-        self.curTime = 0
-        self.initPanels()
+        self.img_duration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
+        self.click_pos = Point(0, 0)
+        self.prev_time = 0
+        self.cur_time = 0
+        self.init_panels()
 
-    def initPanels(self):
+    def init_panels(self):
         self.panel1 = tk.Label(root)
         self.panel1.pack(side="left", fill="both", expand="yes")
         self.panel2 = tk.Label(root)
@@ -70,65 +73,65 @@ class ImageMatrix:
         self.panel1.bind('<B1-Motion>', self.move)
         self.panel2.bind('<Button-1>', self.click)
         self.panel2.bind('<B1-Motion>', self.move)
-        self.updateImages()
+        self.update_images()
 
     def click(self, event):
-        self.clickPos = Point(event.x, event.y)
-        self.baseImg = self.curImg
+        self.click_pos = Point(event.x, event.y)
+        self.base_img = self.cur_img
         return
 
     def move(self, event):
-        diffX = self.clickPos.x - event.x
-        diffY = self.clickPos.y - event.y
+        diff_x = self.click_pos.x - event.x
+        diff_y = self.click_pos.y - event.y
 
-        imgDiffX = int(round(diffX / float(self.unit)))
-        imgDiffY = int(round(diffY / float(self.unit)))
+        img_diff_x = int(round(diff_x / float(self.unit)))
+        img_diff_y = int(round(diff_y / float(self.unit)))
 
-        newImgX = clamp(self.baseImg.x + imgDiffX, 0, self.width - 1)
-        newImgY = clamp(self.baseImg.y + imgDiffY, 0, self.height - 1)
-        newImg = Point(newImgX, newImgY)
+        new_img = Point(clamp(self.base_img.x + img_diff_x, 0, self.width - 1),
+                        clamp(self.base_img.y + img_diff_y, 0, self.height - 1))
 
-        if (newImg != self.curImg):
-            self.prevImg = self.curImg
-            self.curImg = newImg
-            self.updateImages()
+        if new_img != self.cur_img:
+            self.prev_img = self.cur_img
+            self.cur_img = new_img
+            self.update_images()
 
-    def updateImages(self):
-        imgName = '{}_{}.jpg'.format(self.curImg.x, self.curImg.y)
+    def update_images(self):
+        img_name = '{}_{}.jpg'.format(self.cur_img.x, self.cur_img.y)
 
-        newImg = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + imgName))
-        self.panel1.configure(image=newImg)
-        self.panel1.image = newImg
-        self.panel2.configure(image=newImg)
-        self.panel2.image = newImg
+        new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
+        self.panel1.configure(image=new_img)
+        self.panel1.image = new_img
+        self.panel2.configure(image=new_img)
+        self.panel2.image = new_img
 
-        self.writeEndDuration()
+        self.write_end_duration()
 
-        f.write("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')))
+        f.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
-    def writeEndDuration(self):
-        self.prevTime = self.curTime
-        self.curTime = datetime.datetime.now()
+    def write_end_duration(self):
+        self.prev_time = self.cur_time
+        self.cur_time = datetime.datetime.now()
 
-        if (self.prevTime != 0):
-            duration = self.curTime - self.prevTime
-            self.imgDuration[self.prevImg.y][self.prevImg.x] += duration
-            totalDuration = self.imgDuration[self.prevImg.y][self.prevImg.x]
+        if self.prev_time != 0:
+            duration = self.cur_time - self.prev_time
+            self.img_duration[self.prev_img.y][self.prev_img.x] += duration
+            total_duration = self.img_duration[self.prev_img.y][self.prev_img.x]
 
-            f.write("end: {}  duration: {}  total duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), duration,
-                                                                         totalDuration))
+            f.write("end: {}  duration: {}  total duration: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
+                                                                         duration,
+                                                                         total_duration))
 
     def close(self):
-        self.writeEndDuration()
+        self.write_end_duration()
 
         f.flush()
         f.close()
         root.quit()
 
 
-imgMatrix = ImageMatrix(3, 3, Point(1, 1), 60)
+img_matrix = ImageMatrix(3, 3, Point(1, 1), 60)
 
-root.protocol("WM_DELETE_WINDOW", imgMatrix.close)
+root.protocol("WM_DELETE_WINDOW", img_matrix.close)
 
 app = FullScreenApp(root)
 root.mainloop()
