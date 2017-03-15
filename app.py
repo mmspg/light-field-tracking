@@ -32,18 +32,29 @@ root.configure(background=BG_COLOR)
 def clamp(x, minimum, maximum):
     return max(minimum, min(maximum, x))
 
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 class ImageMatrix:
-    def __init__(self, width, height, imgX, imgY, unit):
+    def __init__(self, width, height, baseImg, unit):
         self.width = width
         self.height = height
-        self.baseImgX = imgX
-        self.baseImgY = imgY
-        self.curImgX = imgX
-        self.curImgY = imgY
+        self.baseImg = baseImg
+        self.curImg = baseImg
+        self.imgDuration = [[0.0 for x in range(height)] for y in range(width)]
         self.unit = unit
-        self.clickX = 0
-        self.clickY = 0
+        self.clickPos = Point(0,0)
         self.prevTime = 0
         self.curTime = 0
         self.initPanels()
@@ -61,27 +72,27 @@ class ImageMatrix:
         self.updateImages()
 
     def click(self, event):
-        self.clickX, self.clickY = (event.x, event.y)
-        self.baseImgX = self.curImgX
-        self.baseImgY = self.curImgY
+        self.clickPos = Point(event.x, event.y)
+        self.baseImg = self.curImg
         return
 
     def move(self, event):
-        diffX = self.clickX - event.x
-        diffY = self.clickY - event.y
+        diffX = self.clickPos.x - event.x
+        diffY = self.clickPos.y - event.y
 
         imgDiffX = int(round(diffX / float(self.unit)))
         imgDiffY = int(round(diffY / float(self.unit)))
 
-        newImgX = clamp(self.baseImgX + imgDiffX, 0, self.width - 1)
-        newImgY = clamp(self.baseImgY + imgDiffY, 0, self.height - 1)
-        if (newImgX != self.curImgX or newImgY != self.curImgY):
-            self.curImgX = newImgX
-            self.curImgY = newImgY
+        newImgX = clamp(self.baseImg.x + imgDiffX, 0, self.width - 1)
+        newImgY = clamp(self.baseImg.y + imgDiffY, 0, self.height - 1)
+        newImg = Point(newImgX, newImgY)
+
+        if (newImg != self.curImg):
+            self.curImg = newImg
             self.updateImages()
 
     def updateImages(self):
-        imgName = '{}_{}.jpg'.format(self.curImgX, self.curImgY)
+        imgName = '{}_{}.jpg'.format(self.curImg.x, self.curImg.y)
 
         newImg = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + imgName))
         self.panel1.configure(image=newImg)
@@ -93,8 +104,8 @@ class ImageMatrix:
         self.curTime = datetime.datetime.now()
 
         if (self.prevTime != 0):
-            f.write(
-                "end: {}  duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), self.curTime - self.prevTime))
+            duration = self.curTime - self.prevTime
+            f.write("end: {}  duration: {}\n".format(self.curTime.strftime('%H:%M:%S.%f'), duration))
 
         f.write("Displaying '{}'  start: {}  ".format(imgName, self.curTime.strftime('%H:%M:%S.%f')))
 
@@ -108,7 +119,7 @@ class ImageMatrix:
         root.quit()
 
 
-imgMatrix = ImageMatrix(3, 3, 1, 1, 60)
+imgMatrix = ImageMatrix(3, 3, Point(1, 1), 60)
 
 root.protocol("WM_DELETE_WINDOW", imgMatrix.close)
 
