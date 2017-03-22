@@ -7,6 +7,7 @@ IMG_PATH_PREFIX = "img/"
 f = open('output.txt', 'w')
 
 
+
 class FullScreenApp(object):
     def __init__(self, master, **kwargs):
         self.master = master
@@ -96,7 +97,7 @@ class ImageMatrix:
             self.update_images()
 
     def update_images(self):
-        img_name = '{}_{}.jpg'.format(self.cur_img.x, self.cur_img.y)
+        img_name = '{:02}_{:02}.jpg'.format(self.cur_img.x, self.cur_img.y)
 
         new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
         self.panel1.configure(image=new_img)
