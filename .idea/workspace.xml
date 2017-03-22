@@ -2,15 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="61233b17-2db6-419e-97ef-0ffdf51d3d6c" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/00_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/00_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/00_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/01_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/01_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/01_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/02_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/02_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/02_02.jpg" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app.py" afterPath="$PROJECT_DIR$/app.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -29,8 +21,8 @@
       <file leaf-file-name="app.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="780">
-              <caret line="52" column="0" lean-forward="true" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
+            <state relative-caret-position="-484">
+              <caret line="110" column="0" lean-forward="true" selection-start-line="110" selection-start-column="0" selection-end-line="110" selection-end-column="0" />
               <folding>
                 <element signature="e#0#20#0" expanded="true" />
               </folding>
@@ -57,6 +49,12 @@
       <find>Y</find>
       <find>imgMatrix</find>
       <find>self.prev_img</find>
+      <find>self.click_pos</find>
+      <find>self.</find>
+      <find>write_end_duration</find>
+      <find>x</find>
+      <find>.x</find>
+      <find>last_img</find>
     </findStrings>
     <replaceStrings>
       <replace>unit</replace>
@@ -71,6 +69,8 @@
       <replace>onClose</replace>
       <replace>img_matrix</replace>
       <replace>self.last_img</replace>
+      <replace>close_img</replace>
+      <replace>cur_img</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -308,7 +308,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29104477" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21517412" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -407,8 +407,8 @@
     <entry file="file://$PROJECT_DIR$/img.jpg" />
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="780">
-          <caret line="52" column="0" lean-forward="true" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
+        <state relative-caret-position="-484">
+          <caret line="110" column="0" lean-forward="true" selection-start-line="110" selection-start-column="0" selection-end-line="110" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
           </folding>
