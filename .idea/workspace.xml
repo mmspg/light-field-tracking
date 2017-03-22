@@ -2,16 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="61233b17-2db6-419e-97ef-0ffdf51d3d6c" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/0_0.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/0_1.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/0_2.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/1_0.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/1_1.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/1_2.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/2_0.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/2_1.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/2_2.jpg" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/00_00.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/00_01.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/00_02.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/01_00.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/01_01.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/01_02.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/02_00.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/02_01.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/img/02_02.jpg" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app.py" afterPath="$PROJECT_DIR$/app.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -30,8 +29,8 @@
       <file leaf-file-name="app.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1440">
-              <caret line="96" column="32" lean-forward="true" selection-start-line="96" selection-start-column="32" selection-end-line="96" selection-end-column="32" />
+            <state relative-caret-position="780">
+              <caret line="52" column="0" lean-forward="true" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
               <folding>
                 <element signature="e#0#20#0" expanded="true" />
               </folding>
@@ -57,6 +56,7 @@
       <find>X</find>
       <find>Y</find>
       <find>imgMatrix</find>
+      <find>self.prev_img</find>
     </findStrings>
     <replaceStrings>
       <replace>unit</replace>
@@ -70,6 +70,7 @@
       <replace>self</replace>
       <replace>onClose</replace>
       <replace>img_matrix</replace>
+      <replace>self.last_img</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -406,8 +407,8 @@
     <entry file="file://$PROJECT_DIR$/img.jpg" />
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1440">
-          <caret line="96" column="32" lean-forward="true" selection-start-line="96" selection-start-column="32" selection-end-line="96" selection-end-column="32" />
+        <state relative-caret-position="780">
+          <caret line="52" column="0" lean-forward="true" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
           </folding>

@@ -4,6 +4,8 @@ import datetime
 
 BG_COLOR = "grey"
 IMG_PATH_PREFIX = "img/"
+IMG_NAMES = ["img0", "img1", "img2"]
+
 f = open('output.txt', 'w')
 
 
@@ -51,13 +53,14 @@ class Point:
 
 
 class ImageMatrix:
-    def __init__(self, width, height, base_img, unit):
+    def __init__(self, width, height, base_img, unit, img_index=0):
         self.width = width
         self.height = height
         self.base_img = base_img
-        self.prev_img = base_img
+        self.last_img = base_img
         self.cur_img = base_img
         self.unit = unit
+        self.img_index = img_index
         self.img_duration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
         self.click_pos = Point(0, 0)
         self.prev_time = 0
@@ -92,12 +95,22 @@ class ImageMatrix:
                         clamp(self.base_img.y + img_diff_y, 0, self.height - 1))
 
         if new_img != self.cur_img:
-            self.prev_img = self.cur_img
+            self.last_img = self.cur_img
             self.cur_img = new_img
             self.update_images()
 
+    def next_img(self, event):
+        if (self.img_index + 1)  <= (len(IMG_NAMES)-1):
+            self.img_index += 1
+            self.update_images()
+
+    def prev_img(self, event):
+        if (self.img_index - 1)  >= 0:
+            self.img_index -= 1
+            self.update_images()
+
     def update_images(self):
-        img_name = '{:02}_{:02}.jpg'.format(self.cur_img.x, self.cur_img.y)
+        img_name = '{}_{:02}_{:02}.jpg'.format(IMG_NAMES[self.img_index], self.cur_img.x, self.cur_img.y)
 
         new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
         self.panel1.configure(image=new_img)
@@ -115,8 +128,8 @@ class ImageMatrix:
 
         if self.prev_time != 0:
             duration = self.cur_time - self.prev_time
-            self.img_duration[self.prev_img.y][self.prev_img.x] += duration
-            total_duration = self.img_duration[self.prev_img.y][self.prev_img.x]
+            self.img_duration[self.last_img.y][self.last_img.x] += duration
+            total_duration = self.img_duration[self.last_img.y][self.last_img.x]
 
             f.write("end: {}  duration: {}  total duration: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
                                                                          duration,
@@ -131,6 +144,9 @@ class ImageMatrix:
 
 
 img_matrix = ImageMatrix(3, 3, Point(1, 1), 60)
+root.focus_set()
+root.bind('<Left>', img_matrix.prev_img)
+root.bind('<Right>', img_matrix.next_img)
 
 root.protocol("WM_DELETE_WINDOW", img_matrix.close)
 
