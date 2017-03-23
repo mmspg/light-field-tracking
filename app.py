@@ -44,7 +44,7 @@ class Point:
         return not self.__eq__(other)
 
 
-class ImageMatrix:
+class LFImage:
     def __init__(self, img_name, width, height, base_img, panels, unit=60):
         self.img_name = img_name
         self.width = width
@@ -129,7 +129,7 @@ class Slideshow:
         if (self.img_index + 1)  <= (len(self.images)-1):
             self.cur_img.close_img()
             self.cur_img.cur_time = 0
-            f.write("\n")
+            f.write("<next>\n")
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
             self.cur_img.update_images()
@@ -138,7 +138,7 @@ class Slideshow:
         if (self.img_index - 1)  >= 0:
             self.cur_img.close_img()
             self.cur_img.cur_time = 0
-            f.write("\n")
+            f.write("<previous>\n")
             self.img_index -= 1
             self.cur_img = self.images[self.img_index]
             self.cur_img.update_images()
@@ -172,13 +172,12 @@ panel2 = tk.Label(root)
 panel2.pack(side="right", fill="both", expand="yes")
 panels = [panel1, panel2]
 
-img0 = ImageMatrix("img0", 3, 3, Point(1, 1), panels)
-img1 = ImageMatrix("img1", 3, 3, Point(1, 1), panels)
-img2 = ImageMatrix("img2", 3, 3, Point(1, 1), panels)
+img0 = LFImage("img0", 3, 3, Point(1, 1), panels)
+img1 = LFImage("img1", 3, 3, Point(1, 1), panels)
+img2 = LFImage("img2", 3, 3, Point(1, 1), panels)
 
 slideshow = Slideshow([img0, img1, img2], panels)
 
-root.focus_set()
 root.bind('<Left>', slideshow.prev_img)
 root.bind('<Right>', slideshow.next_img)
 
