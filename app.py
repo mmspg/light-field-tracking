@@ -45,7 +45,7 @@ class Point:
 
 
 class LFImage:
-    def __init__(self, img_name, width, height, base_img, panels, unit=60):
+    def __init__(self, img_name, width, height, base_img, panels, unit=20):
         self.img_name = img_name
         self.width = width
         self.height = height
@@ -85,7 +85,7 @@ class LFImage:
         self.last_img = self.cur_img
         self.cur_img = self.next_img
 
-        img_name = '{}_{:02}_{:02}.jpg'.format(self.img_name, self.cur_img.x, self.cur_img.y)
+        img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
         new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
 
         self.panels[0].configure(image=new_img)
@@ -160,23 +160,36 @@ class Slideshow:
         f.close()
         root.quit()
 
+def rate(rating):
+    print(rating)
 
 root = tk.Tk()
 root.tk.call('tk', 'scaling', 2.0)
 root.title("lf-tracking")
-root.configure(background=BG_COLOR)
 
 panel1 = tk.Label(root)
 panel1.pack(side="left", fill="both", expand="yes")
 panel2 = tk.Label(root)
 panel2.pack(side="right", fill="both", expand="yes")
+panel1.configure(background=BG_COLOR)
+panel2.configure(background=BG_COLOR)
+panel1.configure(text="Test")
+panel2.configure(text="Reference")
 panels = [panel1, panel2]
 
-img0 = LFImage("img0", 3, 3, Point(1, 1), panels)
-img1 = LFImage("img1", 3, 3, Point(1, 1), panels)
-img2 = LFImage("img2", 3, 3, Point(1, 1), panels)
+B = tk.Button(root, text ="1", command = rate(1))
 
-slideshow = Slideshow([img0, img1, img2], panels)
+B.pack()
+
+images = [None] * 6
+images[0] = LFImage("Bikes", 15, 15, Point(7, 7), panels)
+images[1] = LFImage("Danger_de_Mort", 15, 15, Point(7, 7), panels)
+images[2] = LFImage("Flowers", 15, 15, Point(7, 7), panels)
+images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7), panels)
+images[4] = LFImage("Friends_1", 15, 15, Point(7, 7), panels)
+images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7), panels)
+
+slideshow = Slideshow(images, panels)
 
 root.bind('<Left>', slideshow.prev_img)
 root.bind('<Right>', slideshow.next_img)
