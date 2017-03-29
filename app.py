@@ -167,19 +167,28 @@ root = tk.Tk()
 root.tk.call('tk', 'scaling', 2.0)
 root.title("lf-tracking")
 
-panel1 = tk.Label(root)
-panel1.pack(side="left", fill="both", expand="yes")
-panel2 = tk.Label(root)
-panel2.pack(side="right", fill="both", expand="yes")
-panel1.configure(background=BG_COLOR)
-panel2.configure(background=BG_COLOR)
+main_frame = tk.Frame()
+
+panel1 = tk.Label(main_frame)
+panel1.grid(row=0, column=0)
+panel2 = tk.Label(main_frame)
+panel2.grid(row=0, column=1)
+
 panel1.configure(text="Test")
 panel2.configure(text="Reference")
 panels = [panel1, panel2]
 
-B = tk.Button(root, text ="1", command = rate(1))
+buttons_frame = tk.Frame(pady=20)
 
-B.pack()
+for i in range(1, 6):
+    btn = tk.Button(buttons_frame, text=str(i), command = rate(i), width=6, highlightbackground=BG_COLOR)
+    btn.grid(row=0, column=(i-1))
+    btn.configure(background=BG_COLOR)
+
+buttons_frame.grid(in_=main_frame, row=1, column=0, columnspan=2)
+
+
+main_frame.place(anchor="c", relx=.50, rely=.50)
 
 images = [None] * 6
 images[0] = LFImage("Bikes", 15, 15, Point(7, 7), panels)
@@ -195,6 +204,12 @@ root.bind('<Left>', slideshow.prev_img)
 root.bind('<Right>', slideshow.next_img)
 
 root.protocol("WM_DELETE_WINDOW", slideshow.close)
+
+panel1.configure(background=BG_COLOR)
+panel2.configure(background=BG_COLOR)
+buttons_frame.configure(background=BG_COLOR)
+main_frame.configure(background=BG_COLOR)
+root.configure(background=BG_COLOR)
 
 app = FullScreenApp(root)
 root.mainloop()

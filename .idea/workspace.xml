@@ -2,34 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="61233b17-2db6-419e-97ef-0ffdf51d3d6c" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_00_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_00_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_00_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_01_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_01_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_01_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_02_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_02_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img0_02_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_00_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_00_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_00_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_01_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_01_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_01_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_02_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_02_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img1_02_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_00_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_00_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_00_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_01_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_01_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_01_02.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_02_00.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_02_01.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/img/img2_02_02.jpg" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app.py" afterPath="$PROJECT_DIR$/app.py" />
     </list>
@@ -49,8 +21,8 @@
       <file leaf-file-name="app.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="187" column="53" lean-forward="false" selection-start-line="187" selection-start-column="53" selection-end-line="187" selection-end-column="53" />
+            <state relative-caret-position="109">
+              <caret line="187" column="47" lean-forward="true" selection-start-line="187" selection-start-column="47" selection-end-line="187" selection-end-column="47" />
               <folding>
                 <element signature="e#0#20#0" expanded="true" />
               </folding>
@@ -85,6 +57,9 @@
       <find>BG_COLOR</find>
       <find>print</find>
       <find>imgs</find>
+      <find>root</find>
+      <find>images_frame</find>
+      <find>main_frame</find>
     </findStrings>
     <replaceStrings>
       <replace>unit</replace>
@@ -105,6 +80,8 @@
       <replace>15</replace>
       <replace>7</replace>
       <replace>images</replace>
+      <replace>frame</replace>
+      <replace>main_frame</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -118,9 +95,9 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="369" />
+    <option name="x" value="343" />
     <option name="y" value="23" />
-    <option name="width" value="1071" />
+    <option name="width" value="1097" />
     <option name="height" value="873" />
   </component>
   <component name="ProjectView">
@@ -328,13 +305,13 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="369" y="23" width="1071" height="873" extended-state="0" />
+    <frame x="343" y="23" width="1097" height="873" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14565827" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14220601" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13557214" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16915423" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -361,6 +338,16 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/app.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#20#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -506,8 +493,8 @@
     <entry file="file://$PROJECT_DIR$/img.jpg" />
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="187" column="53" lean-forward="false" selection-start-line="187" selection-start-column="53" selection-end-line="187" selection-end-column="53" />
+        <state relative-caret-position="109">
+          <caret line="187" column="47" lean-forward="true" selection-start-line="187" selection-start-column="47" selection-end-line="187" selection-end-column="47" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
           </folding>
