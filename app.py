@@ -111,10 +111,11 @@ class LFImage:
 
 
 class Slideshow:
-    def __init__(self, images, panels, textLabel, base_img_index=0):
+    def __init__(self, images, panels, img_index_label, message_label, base_img_index=0):
         self.images = images
         self.img_index = base_img_index
-        self.textLabel = textLabel
+        self.img_index_label = img_index_label
+        self.message_label = message_label
         self.cur_img = images[base_img_index]
         self.cur_img.update_images()
         self.ratings = [None] * len(images)
@@ -151,7 +152,13 @@ class Slideshow:
 
     def rate(self, rating):
         self.ratings[self.img_index] = rating
-        self.next_img(None)
+
+        print(self.is_rating_complete())
+
+        if(self.is_rating_complete()):
+            self.message_label.configure(text="Rating Completed!")
+        else:
+            self.next_img(None)
 
     def click(self, event):
         click_pos = Point(event.x, event.y)
@@ -164,7 +171,14 @@ class Slideshow:
         return
 
     def display_img_index(self):
-        self.textLabel.configure(text="Image {}/{}".format(self.img_index+1, len(self.images)))
+        self.img_index_label.configure(text="Image {}/{}".format(self.img_index+1, len(self.images)))
+
+    def is_rating_complete(self):
+        ret = True
+        for r in self.ratings:
+            if r is None: ret = False
+
+        return ret
 
     def close(self):
         self.cur_img.close_img()
@@ -194,8 +208,10 @@ panel2.grid(row=1, column=1)
 
 panels = [panel1, panel2]
 
-textLabel = tk.Label(main_frame, background=BG_COLOR, pady=15)
-textLabel.grid(row=2, column=0, columnspan=2)
+img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=15)
+img_index_label.grid(row=2, column=0, columnspan=2)
+message_label = tk.Label(main_frame, background=BG_COLOR, font=("Helvetica", 16), pady=15)
+message_label.grid(row=4, column=0, columnspan=2)
 
 images = [None] * 6
 images[0] = LFImage("Bikes", 15, 15, Point(7, 7), panels)
@@ -205,9 +221,9 @@ images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7), panels)
 images[4] = LFImage("Friends_1", 15, 15, Point(7, 7), panels)
 images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7), panels)
 
-slideshow = Slideshow(images, panels, textLabel)
+slideshow = Slideshow(images, panels, img_index_label, message_label)
 
-buttons_frame = tk.Frame(pady=5, background=BG_COLOR)
+buttons_frame = tk.Frame(background=BG_COLOR)
 
 for i in range(1, 6):
     btn = tk.Button(buttons_frame, text=str(i), command = lambda i=i: slideshow.rate(i), width=6, highlightbackground=BG_COLOR)
