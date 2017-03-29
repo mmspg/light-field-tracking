@@ -111,12 +111,15 @@ class LFImage:
 
 
 class Slideshow:
-    def __init__(self, images, panels, base_img_index=0):
+    def __init__(self, images, panels, textLabel, base_img_index=0):
         self.images = images
         self.img_index = base_img_index
+        self.textLabel = textLabel
         self.cur_img = images[base_img_index]
         self.cur_img.update_images()
         self.ratings = [None] * len(images)
+
+        print(base_img_index)
 
         self.panels = panels
         self.panels[0].bind('<Button-1>', self.click)
@@ -124,6 +127,7 @@ class Slideshow:
         self.panels[1].bind('<Button-1>', self.click)
         self.panels[1].bind('<B1-Motion>', self.move)
 
+        self.display_img_index()
 
     def next_img(self, event):
         if (self.img_index + 1)  <= (len(self.images)-1):
@@ -133,6 +137,7 @@ class Slideshow:
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
             self.cur_img.update_images()
+            self.display_img_index()
 
     def prev_img(self, event):
         if (self.img_index - 1)  >= 0:
@@ -142,10 +147,11 @@ class Slideshow:
             self.img_index -= 1
             self.cur_img = self.images[self.img_index]
             self.cur_img.update_images()
+            self.display_img_index()
 
     def rate(self, rating):
         self.ratings[self.img_index] = rating
-        self.next_img()
+        self.next_img(None)
 
     def click(self, event):
         click_pos = Point(event.x, event.y)
@@ -156,6 +162,9 @@ class Slideshow:
         move_pos = Point(event.x, event.y)
         self.cur_img.move(move_pos)
         return
+
+    def display_img_index(self):
+        self.textLabel.configure(text="Image {}/{}".format(self.img_index+1, len(self.images)))
 
     def close(self):
         self.cur_img.close_img()
@@ -171,19 +180,22 @@ class Slideshow:
 
 
 root = tk.Tk()
-root.tk.call('tk', 'scaling', 2.0)
 root.title("lf-tracking")
+root.configure(background=BG_COLOR)
 
-main_frame = tk.Frame()
+main_frame = tk.Frame(background=BG_COLOR)
 
-panel1 = tk.Label(main_frame)
-panel1.grid(row=0, column=0)
-panel2 = tk.Label(main_frame)
-panel2.grid(row=0, column=1)
+tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
+tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=1)
+panel1 = tk.Label(main_frame, background=BG_COLOR)
+panel1.grid(row=1, column=0)
+panel2 = tk.Label(main_frame, background=BG_COLOR)
+panel2.grid(row=1, column=1)
 
-panel1.configure(text="Test")
-panel2.configure(text="Reference")
 panels = [panel1, panel2]
+
+textLabel = tk.Label(main_frame, background=BG_COLOR, pady=15)
+textLabel.grid(row=2, column=0, columnspan=2)
 
 images = [None] * 6
 images[0] = LFImage("Bikes", 15, 15, Point(7, 7), panels)
@@ -193,17 +205,16 @@ images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7), panels)
 images[4] = LFImage("Friends_1", 15, 15, Point(7, 7), panels)
 images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7), panels)
 
-slideshow = Slideshow(images, panels)
+slideshow = Slideshow(images, panels, textLabel)
 
-
-buttons_frame = tk.Frame(pady=20)
+buttons_frame = tk.Frame(pady=5, background=BG_COLOR)
 
 for i in range(1, 6):
     btn = tk.Button(buttons_frame, text=str(i), command = lambda i=i: slideshow.rate(i), width=6, highlightbackground=BG_COLOR)
     btn.grid(row=0, column=(i-1))
     btn.configure(background=BG_COLOR)
 
-buttons_frame.grid(in_=main_frame, row=1, column=0, columnspan=2)
+buttons_frame.grid(in_=main_frame, row=3, column=0, columnspan=2)
 
 main_frame.place(anchor="c", relx=.50, rely=.50)
 
@@ -211,13 +222,14 @@ main_frame.place(anchor="c", relx=.50, rely=.50)
 root.bind('<Left>', slideshow.prev_img)
 root.bind('<Right>', slideshow.next_img)
 
+root.bind('1', lambda x: slideshow.rate(1))
+root.bind('2', lambda x: slideshow.rate(2))
+root.bind('3', lambda x: slideshow.rate(3))
+root.bind('4', lambda x: slideshow.rate(4))
+root.bind('5', lambda x: slideshow.rate(5))
+
 root.protocol("WM_DELETE_WINDOW", slideshow.close)
 
-panel1.configure(background=BG_COLOR)
-panel2.configure(background=BG_COLOR)
-buttons_frame.configure(background=BG_COLOR)
-main_frame.configure(background=BG_COLOR)
-root.configure(background=BG_COLOR)
 
 app = FullScreenApp(root)
 root.mainloop()
