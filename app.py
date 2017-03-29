@@ -201,6 +201,7 @@ main_frame = tk.Frame(background=BG_COLOR)
 
 tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
 tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=1)
+
 panel1 = tk.Label(main_frame, background=BG_COLOR)
 panel1.grid(row=1, column=0)
 panel2 = tk.Label(main_frame, background=BG_COLOR)
@@ -233,7 +234,6 @@ for i in range(1, 6):
 buttons_frame.grid(in_=main_frame, row=3, column=0, columnspan=2)
 
 main_frame.place(anchor="c", relx=.50, rely=.50)
-
 
 root.bind('<Left>', slideshow.prev_img)
 root.bind('<Right>', slideshow.next_img)
