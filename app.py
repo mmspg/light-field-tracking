@@ -116,9 +116,9 @@ class Slideshow:
         self.img_index = base_img_index
         self.cur_img = images[base_img_index]
         self.cur_img.update_images()
+        self.ratings = [None] * len(images)
 
         self.panels = panels
-
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
         self.panels[1].bind('<Button-1>', self.click)
@@ -143,6 +143,10 @@ class Slideshow:
             self.cur_img = self.images[self.img_index]
             self.cur_img.update_images()
 
+    def rate(self, rating):
+        self.ratings[self.img_index] = rating
+        self.next_img()
+
     def click(self, event):
         click_pos = Point(event.x, event.y)
         self.cur_img.click(click_pos)
@@ -156,12 +160,15 @@ class Slideshow:
     def close(self):
         self.cur_img.close_img()
 
+        f.write("\nRATINGS\n")
+
+        for i in range(len(self.images)):
+            f.write("   {:30} : {}\n".format(self.images[i].img_name, self.ratings[i]))
+
         f.flush()
         f.close()
         root.quit()
 
-def rate(rating):
-    print(rating)
 
 root = tk.Tk()
 root.tk.call('tk', 'scaling', 2.0)
@@ -178,18 +185,6 @@ panel1.configure(text="Test")
 panel2.configure(text="Reference")
 panels = [panel1, panel2]
 
-buttons_frame = tk.Frame(pady=20)
-
-for i in range(1, 6):
-    btn = tk.Button(buttons_frame, text=str(i), command = rate(i), width=6, highlightbackground=BG_COLOR)
-    btn.grid(row=0, column=(i-1))
-    btn.configure(background=BG_COLOR)
-
-buttons_frame.grid(in_=main_frame, row=1, column=0, columnspan=2)
-
-
-main_frame.place(anchor="c", relx=.50, rely=.50)
-
 images = [None] * 6
 images[0] = LFImage("Bikes", 15, 15, Point(7, 7), panels)
 images[1] = LFImage("Danger_de_Mort", 15, 15, Point(7, 7), panels)
@@ -199,6 +194,19 @@ images[4] = LFImage("Friends_1", 15, 15, Point(7, 7), panels)
 images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7), panels)
 
 slideshow = Slideshow(images, panels)
+
+
+buttons_frame = tk.Frame(pady=20)
+
+for i in range(1, 6):
+    btn = tk.Button(buttons_frame, text=str(i), command = lambda i=i: slideshow.rate(i), width=6, highlightbackground=BG_COLOR)
+    btn.grid(row=0, column=(i-1))
+    btn.configure(background=BG_COLOR)
+
+buttons_frame.grid(in_=main_frame, row=1, column=0, columnspan=2)
+
+main_frame.place(anchor="c", relx=.50, rely=.50)
+
 
 root.bind('<Left>', slideshow.prev_img)
 root.bind('<Right>', slideshow.next_img)
