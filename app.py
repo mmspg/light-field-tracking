@@ -5,7 +5,8 @@ import datetime
 BG_COLOR = "grey"
 IMG_PATH_PREFIX = "img/"
 
-f = open('output.txt', 'w')
+f_tracking = open('tracking.txt', 'w')
+f_ratings = open('ratings.txt', 'w')
 
 
 class FullScreenApp(object):
@@ -94,7 +95,7 @@ class LFImage:
         self.panels[1].image = new_img
 
 
-        f.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
+        f_tracking.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def close_img(self):
         self.prev_time = self.cur_time
@@ -105,7 +106,7 @@ class LFImage:
             self.img_duration[self.cur_img.x][self.cur_img.y] += duration
             total_duration = self.img_duration[self.cur_img.x][self.cur_img.y]
 
-            f.write("end: {}  duration: {}  total duration: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
+            f_tracking.write("end: {}  duration: {}  total duration: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
                                                                          duration,
                                                                          total_duration))
 
@@ -120,8 +121,6 @@ class Slideshow:
         self.cur_img.update_images()
         self.ratings = [None] * len(images)
 
-        print(base_img_index)
-
         self.panels = panels
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
@@ -134,26 +133,14 @@ class Slideshow:
         if (self.img_index + 1)  <= (len(self.images)-1):
             self.cur_img.close_img()
             self.cur_img.cur_time = 0
-            f.write("<next>\n")
+            f_tracking.write("<next>\n")
             self.img_index += 1
-            self.cur_img = self.images[self.img_index]
-            self.cur_img.update_images()
-            self.display_img_index()
-
-    def prev_img(self, event):
-        if (self.img_index - 1)  >= 0:
-            self.cur_img.close_img()
-            self.cur_img.cur_time = 0
-            f.write("<previous>\n")
-            self.img_index -= 1
             self.cur_img = self.images[self.img_index]
             self.cur_img.update_images()
             self.display_img_index()
 
     def rate(self, rating):
         self.ratings[self.img_index] = rating
-
-        print(self.is_rating_complete())
 
         if(self.is_rating_complete()):
             self.message_label.configure(text="Rating Completed!")
@@ -182,14 +169,14 @@ class Slideshow:
 
     def close(self):
         self.cur_img.close_img()
-
-        f.write("\nRATINGS\n")
+        f_tracking.flush()
+        f_tracking.close()
 
         for i in range(len(self.images)):
-            f.write("   {:30} : {}\n".format(self.images[i].img_name, self.ratings[i]))
+            f_ratings.write("   {:30} : {}\n".format(self.images[i].img_name, self.ratings[i]))
 
-        f.flush()
-        f.close()
+        f_ratings.flush()
+        f_ratings.close()
         root.quit()
 
 
@@ -234,9 +221,6 @@ for i in range(1, 6):
 buttons_frame.grid(in_=main_frame, row=3, column=0, columnspan=2)
 
 main_frame.place(anchor="c", relx=.50, rely=.50)
-
-root.bind('<Left>', slideshow.prev_img)
-root.bind('<Right>', slideshow.next_img)
 
 root.bind('1', lambda x: slideshow.rate(1))
 root.bind('2', lambda x: slideshow.rate(2))
