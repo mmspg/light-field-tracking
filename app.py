@@ -120,6 +120,7 @@ class Slideshow:
         self.cur_img = images[base_img_index]
         self.cur_img.update_images()
         self.ratings = [None] * len(images)
+        self.ended = False
 
         self.panels = panels
         self.panels[0].bind('<Button-1>', self.click)
@@ -142,8 +143,10 @@ class Slideshow:
     def rate(self, rating):
         self.ratings[self.img_index] = rating
 
-        if(self.is_rating_complete()):
-            self.message_label.configure(text="Rating Completed!")
+        if self.is_rating_complete() and not self.ended:
+            self.ended = True
+            end_msg = tk.Label(root, text="FINISHED", background=BG_COLOR)
+            end_msg.pack(fill="both", expand="true")
         else:
             self.next_img(None)
 
