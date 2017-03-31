@@ -46,7 +46,7 @@ class Point:
 
 
 class LFImage:
-    def __init__(self, img_name, width, height, base_img, panels, unit=20):
+    def __init__(self, img_name, width, height, base_img, unit=20):
         self.img_name = img_name
         self.width = width
         self.height = height
@@ -54,12 +54,12 @@ class LFImage:
         self.last_img = base_img
         self.cur_img = base_img
         self.next_img = base_img
-        self.panels = panels
         self.unit = unit
         self.img_duration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
         self.click_pos = Point(0, 0)
         self.prev_time = 0
         self.cur_time = 0
+        self.panels = None
 
 
     def click(self, click_pos):
@@ -94,7 +94,6 @@ class LFImage:
         self.panels[1].configure(image=new_img)
         self.panels[1].image = new_img
 
-
         f_tracking.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def close_img(self):
@@ -110,25 +109,69 @@ class LFImage:
                                                                          duration,
                                                                          total_duration))
 
+    def set_panels(self, panels):
+        self.panels = panels
 
-class Slideshow:
-    def __init__(self, images, panels, img_index_label, message_label, base_img_index=0):
+class TestSession:
+    def __init__(self, images):
         self.images = images
-        self.img_index = base_img_index
-        self.img_index_label = img_index_label
-        self.message_label = message_label
-        self.cur_img = images[base_img_index]
-        self.cur_img.update_images()
+        self.panels = None
+        self.img_index = 0
+        self.img_index_label = None
+        self.message_label = None
+        self.cur_img = images[self.img_index]
         self.ratings = [None] * len(images)
         self.ended = False
 
-        self.panels = panels
+        self.setup_gui()
+
+        for img in self.images:
+            img.set_panels(self.panels)
+            
+        self.cur_img.update_images()
+        self.display_img_index()
+
+    def setup_gui(self):
+        main_frame = tk.Frame(background=BG_COLOR)
+
+        tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
+        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=1)
+
+        panel1 = tk.Label(main_frame, background=BG_COLOR)
+        panel1.grid(row=1, column=0)
+        panel2 = tk.Label(main_frame, background=BG_COLOR)
+        panel2.grid(row=1, column=1)
+
+        self.panels = [panel1, panel2]
+
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
         self.panels[1].bind('<Button-1>', self.click)
         self.panels[1].bind('<B1-Motion>', self.move)
 
-        self.display_img_index()
+        self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=15)
+        self.img_index_label.grid(row=2, column=0, columnspan=2)
+        self.message_label = tk.Label(main_frame, background=BG_COLOR, font=("Helvetica", 16), pady=15)
+        self.message_label.grid(row=4, column=0, columnspan=2)
+
+        buttons_frame = tk.Frame(background=BG_COLOR)
+
+        for i in range(1, 6):
+            btn = tk.Button(buttons_frame, text=str(i), command=lambda i=i: self.rate(i), width=6,
+                            highlightbackground=BG_COLOR)
+            btn.grid(row=0, column=(i - 1))
+            btn.configure(background=BG_COLOR)
+
+        buttons_frame.grid(in_=main_frame, row=3, column=0, columnspan=2)
+
+        main_frame.place(anchor="c", relx=.50, rely=.50)
+
+        root.bind('1', lambda x: self.rate(1))
+        root.bind('2', lambda x: self.rate(2))
+        root.bind('3', lambda x: self.rate(3))
+        root.bind('4', lambda x: self.rate(4))
+        root.bind('5', lambda x: self.rate(5))
+        root.protocol("WM_DELETE_WINDOW", self.close)
 
     def next_img(self, event):
         if (self.img_index + 1)  <= (len(self.images)-1):
@@ -187,51 +230,16 @@ root = tk.Tk()
 root.title("lf-tracking")
 root.configure(background=BG_COLOR)
 
-main_frame = tk.Frame(background=BG_COLOR)
-
-tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
-tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=1)
-
-panel1 = tk.Label(main_frame, background=BG_COLOR)
-panel1.grid(row=1, column=0)
-panel2 = tk.Label(main_frame, background=BG_COLOR)
-panel2.grid(row=1, column=1)
-
-panels = [panel1, panel2]
-
-img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=15)
-img_index_label.grid(row=2, column=0, columnspan=2)
-message_label = tk.Label(main_frame, background=BG_COLOR, font=("Helvetica", 16), pady=15)
-message_label.grid(row=4, column=0, columnspan=2)
 
 images = [None] * 6
-images[0] = LFImage("Bikes", 15, 15, Point(7, 7), panels)
-images[1] = LFImage("Danger_de_Mort", 15, 15, Point(7, 7), panels)
-images[2] = LFImage("Flowers", 15, 15, Point(7, 7), panels)
-images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7), panels)
-images[4] = LFImage("Friends_1", 15, 15, Point(7, 7), panels)
-images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7), panels)
+images[0] = LFImage("Bikes", 15, 15, Point(7, 7))
+images[1] = LFImage("Danger_de_Mort", 15, 15, Point(7, 7))
+images[2] = LFImage("Flowers", 15, 15, Point(7, 7))
+images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7))
+images[4] = LFImage("Friends_1", 15, 15, Point(7, 7))
+images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7))
 
-slideshow = Slideshow(images, panels, img_index_label, message_label)
-
-buttons_frame = tk.Frame(background=BG_COLOR)
-
-for i in range(1, 6):
-    btn = tk.Button(buttons_frame, text=str(i), command = lambda i=i: slideshow.rate(i), width=6, highlightbackground=BG_COLOR)
-    btn.grid(row=0, column=(i-1))
-    btn.configure(background=BG_COLOR)
-
-buttons_frame.grid(in_=main_frame, row=3, column=0, columnspan=2)
-
-main_frame.place(anchor="c", relx=.50, rely=.50)
-
-root.bind('1', lambda x: slideshow.rate(1))
-root.bind('2', lambda x: slideshow.rate(2))
-root.bind('3', lambda x: slideshow.rate(3))
-root.bind('4', lambda x: slideshow.rate(4))
-root.bind('5', lambda x: slideshow.rate(5))
-
-root.protocol("WM_DELETE_WINDOW", slideshow.close)
+TestSession(images)
 
 
 app = FullScreenApp(root)
