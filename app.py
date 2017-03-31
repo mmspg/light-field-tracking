@@ -112,9 +112,13 @@ class LFImage:
     def set_panels(self, panels):
         self.panels = panels
 
+
 class TestSession:
-    def __init__(self, images):
+    def __init__(self, images, questions, answers_scale, answers):
         self.images = images
+        self.questions = questions
+        self.answers_scale = answers_scale
+        self.answers = answers
         self.panels = None
         self.img_index = 0
         self.img_index_label = None
@@ -137,40 +141,39 @@ class TestSession:
         tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
         tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=1)
 
-        panel1 = tk.Label(main_frame, background=BG_COLOR)
-        panel1.grid(row=1, column=0)
-        panel2 = tk.Label(main_frame, background=BG_COLOR)
-        panel2.grid(row=1, column=1)
-
-        self.panels = [panel1, panel2]
+        self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
+        self.panels[0].grid(row=1, column=0)
+        self.panels[1].grid(row=1, column=1)
 
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
         self.panels[1].bind('<Button-1>', self.click)
         self.panels[1].bind('<B1-Motion>', self.move)
 
-        self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=15)
+        self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
         self.img_index_label.grid(row=2, column=0, columnspan=2)
-        self.message_label = tk.Label(main_frame, background=BG_COLOR, font=("Helvetica", 16), pady=15)
-        self.message_label.grid(row=4, column=0, columnspan=2)
+
+        question_label = tk.Label(main_frame, text=question, background=BG_COLOR)
+        question_label.grid(row=3, column=0, columnspan=2)
+
+        answers_scale_label = tk.Label(main_frame, text=answers_scale, justify="left", background=BG_COLOR)
+        answers_scale_label.grid(row=4, column=0, columnspan=2)
 
         buttons_frame = tk.Frame(background=BG_COLOR)
 
-        for i in range(1, 6):
-            btn = tk.Button(buttons_frame, text=str(i), command=lambda i=i: self.rate(i), width=6,
+        for i in range(len(answers)):
+            btn = tk.Button(buttons_frame, text=str(answers[i]), command=lambda a=answers[i]: self.rate(a), width=6,
                             highlightbackground=BG_COLOR)
-            btn.grid(row=0, column=(i - 1))
+            btn.grid(row=0, column=(i))
             btn.configure(background=BG_COLOR)
 
-        buttons_frame.grid(in_=main_frame, row=3, column=0, columnspan=2)
+            if len(answers) <= 9:
+                root.bind(str(i+1), lambda e, a=answers[i]: self.rate(a))
+
+        buttons_frame.grid(in_=main_frame, row=5, column=0, columnspan=2, pady=10)
 
         main_frame.place(anchor="c", relx=.50, rely=.50)
 
-        root.bind('1', lambda x: self.rate(1))
-        root.bind('2', lambda x: self.rate(2))
-        root.bind('3', lambda x: self.rate(3))
-        root.bind('4', lambda x: self.rate(4))
-        root.bind('5', lambda x: self.rate(5))
         root.protocol("WM_DELETE_WINDOW", self.close)
 
     def next_img(self, event):
@@ -185,6 +188,7 @@ class TestSession:
 
     def rate(self, rating):
         self.ratings[self.img_index] = rating
+        f_ratings.write("{:30} : {}\n".format(self.cur_img.img_name, rating))
 
         if self.is_rating_complete() and not self.ended:
             self.ended = True
@@ -215,14 +219,12 @@ class TestSession:
 
     def close(self):
         self.cur_img.close_img()
+
         f_tracking.flush()
         f_tracking.close()
-
-        for i in range(len(self.images)):
-            f_ratings.write("   {:30} : {}\n".format(self.images[i].img_name, self.ratings[i]))
-
         f_ratings.flush()
         f_ratings.close()
+
         root.quit()
 
 
@@ -239,7 +241,15 @@ images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7))
 images[4] = LFImage("Friends_1", 15, 15, Point(7, 7))
 images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7))
 
-TestSession(images)
+question = "How would you rate the impairment of the test image (left) compared to the reference image (right)?"
+answers_scale = "5 imperceptible\n" \
+                "4 perceptible, but not annoying\n" \
+                "3 slightly annoying\n" \
+                "2 annoying\n" \
+                "1 very annoying"
+answers = [1, 2, 3, 4, 5]
+
+TestSession(images, question, answers_scale, answers)
 
 
 app = FullScreenApp(root)
