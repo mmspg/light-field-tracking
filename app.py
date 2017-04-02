@@ -33,7 +33,8 @@ def clamp(x, minimum, maximum):
 
 
 class Point:
-    ""
+    "Represents a 2D point"
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -317,6 +318,10 @@ class TestSession:
         root.quit()
 
 
+###############
+## MAIN CODE ##
+###############
+
 root = tk.Tk()
 root.title("lf-tracking")
 root.configure(background=BG_COLOR)
@@ -334,7 +339,7 @@ answers_scale = "1 : very annoying\n" \
                 "2 : annoying\n" \
                 "3 : slightly annoying\n" \
                 "4 : perceptible, but not annoying\n" \
-                "5 : imperceptible\n"
+                "5 : imperceptible"
 answers = [1, 2, 3, 4, 5]
 
 TestSession(images, question, answers_scale, answers)
