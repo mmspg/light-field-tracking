@@ -120,6 +120,7 @@ class TestSession:
         self.answers_scale = answers_scale
         self.answers = answers
         self.panels = None
+        self.focus_scale = None
         self.img_index = 0
         self.img_index_label = None
         self.message_label = None
@@ -139,38 +140,44 @@ class TestSession:
         main_frame = tk.Frame(background=BG_COLOR)
 
         tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
-        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=1)
+        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=2)
 
         self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
         self.panels[0].grid(row=1, column=0)
-        self.panels[1].grid(row=1, column=1)
+        self.panels[1].grid(row=1, column=2)
 
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
         self.panels[1].bind('<Button-1>', self.click)
         self.panels[1].bind('<B1-Motion>', self.move)
 
+        focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
+        self.focus_scale = tk.Scale(focus_frame, from_=10, to=0, showvalue=0, length=200, background=BG_COLOR)
+        self.focus_scale.grid(row=1, column=0)
+        tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
+        tk.Label(focus_frame, text="Near", background=BG_COLOR).grid(row=2, column=0)
+        focus_frame.grid(row=1, column=1)
+
         self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
-        self.img_index_label.grid(row=2, column=0, columnspan=2)
+        self.img_index_label.grid(row=2, column=0, columnspan=3)
 
         question_label = tk.Label(main_frame, text=question, background=BG_COLOR)
-        question_label.grid(row=3, column=0, columnspan=2)
+        question_label.grid(row=3, column=0, columnspan=3)
 
         answers_scale_label = tk.Label(main_frame, text=answers_scale, justify="left", background=BG_COLOR)
-        answers_scale_label.grid(row=4, column=0, columnspan=2)
+        answers_scale_label.grid(row=4, column=0, columnspan=3)
 
-        buttons_frame = tk.Frame(background=BG_COLOR)
+        buttons_frame = tk.Frame(main_frame, background=BG_COLOR)
 
         for i in range(len(answers)):
             btn = tk.Button(buttons_frame, text=str(answers[i]), command=lambda a=answers[i]: self.rate(a), width=6,
                             highlightbackground=BG_COLOR)
             btn.grid(row=0, column=(i))
-            btn.configure(background=BG_COLOR)
 
             if len(answers) <= 9:
                 root.bind(str(i+1), lambda e, a=answers[i]: self.rate(a))
 
-        buttons_frame.grid(in_=main_frame, row=5, column=0, columnspan=2, pady=10)
+        buttons_frame.grid(row=5, column=0, columnspan=3, pady=10)
 
         main_frame.place(anchor="c", relx=.50, rely=.50)
 
