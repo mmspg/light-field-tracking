@@ -46,14 +46,20 @@ class Point:
 
 
 class LFImage:
-    def __init__(self, img_name, width, height, base_img, unit=20):
+    def __init__(self, img_name, width, height, base_img=None, focus_point=0, unit=20):
         self.img_name = img_name
         self.width = width
         self.height = height
-        self.base_img = base_img
-        self.last_img = base_img
-        self.cur_img = base_img
-        self.next_img = base_img
+
+        if base_img is None:
+            self.base_img = Point(width//2, height//2)
+        else:
+            self.base_img = base_img
+
+        self.last_img = self.base_img
+        self.cur_img = self.base_img
+        self.next_img = self.base_img
+        self.focus_point = focus_point
         self.unit = unit
         self.img_duration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
         self.click_pos = Point(0, 0)
@@ -79,6 +85,10 @@ class LFImage:
 
         if self.next_img != self.cur_img:
             self.update_images()
+
+    def refocus(self, new_focus):
+        self.focus_point = new_focus
+        self.update_images()
 
     def update_images(self):
         self.close_img()
@@ -152,7 +162,7 @@ class TestSession:
         self.panels[1].bind('<B1-Motion>', self.move)
 
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=10, to=0, showvalue=0, length=200, background=BG_COLOR)
+        self.focus_scale = tk.Scale(focus_frame, from_=10, to=0, command=self.cur_img.refocus, showvalue=0, length=200, background=BG_COLOR)
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
         tk.Label(focus_frame, text="Near", background=BG_COLOR).grid(row=2, column=0)
@@ -239,21 +249,20 @@ root = tk.Tk()
 root.title("lf-tracking")
 root.configure(background=BG_COLOR)
 
-
 images = [None] * 6
-images[0] = LFImage("Bikes", 15, 15, Point(7, 7))
-images[1] = LFImage("Danger_de_Mort", 15, 15, Point(7, 7))
-images[2] = LFImage("Flowers", 15, 15, Point(7, 7))
-images[3] = LFImage("Fountain_&_Vincent_2", 15, 15, Point(7, 7))
-images[4] = LFImage("Friends_1", 15, 15, Point(7, 7))
-images[5] = LFImage("Stone_Pillars_Outside", 15, 15, Point(7, 7))
+images[0] = LFImage("Bikes", 15, 15)
+images[1] = LFImage("Danger_de_Mort", 15, 15)
+images[2] = LFImage("Flowers", 15, 15)
+images[3] = LFImage("Fountain_&_Vincent_2", 15, 15)
+images[4] = LFImage("Friends_1", 15, 15)
+images[5] = LFImage("Stone_Pillars_Outside", 15, 15)
 
 question = "How would you rate the impairment of the test image (left) compared to the reference image (right)?"
-answers_scale = "5 imperceptible\n" \
-                "4 perceptible, but not annoying\n" \
-                "3 slightly annoying\n" \
-                "2 annoying\n" \
-                "1 very annoying"
+answers_scale = "1 : very annoying\n" \
+                "2 : annoying\n" \
+                "3 : slightly annoying\n" \
+                "4 : perceptible, but not annoying\n" \
+                "5 : imperceptible\n"
 answers = [1, 2, 3, 4, 5]
 
 TestSession(images, question, answers_scale, answers)
