@@ -51,23 +51,25 @@ class Point:
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, width, height, base_img=None, focus_depth=0, unit=20):
+    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_z, base_img=None, focus_depth=0, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
-        :param width: The number of images in the x-axis.
-        :param height: The number of images in the y-axis.
+        :param nb_img_x: The number of images in the x-axis.
+        :param nb_img_y: The number of images in the y-axis.
+        :param nb_img_z: The number of images in the z-axis (i.e. depth)
         :param base_img: The Point representing the first image to display. If it is None, the middle center image is taken.
         :param focus_depth: The initial depth that should be in focus.
         :param unit: The number of pixels one should move the mouse to switch to the next image.
         """
 
         self.img_name = img_name
-        self.width = width
-        self.height = height
+        self.nb_img_x = nb_img_x
+        self.nb_img_y = nb_img_y
+        self.nb_img_z = nb_img_z
 
         if base_img is None:
-            self.base_img = Point(width // 2, height // 2)
+            self.base_img = Point(nb_img_x // 2, nb_img_y // 2)
         else:
             self.base_img = base_img
 
@@ -76,7 +78,7 @@ class LFImage:
         self.next_img = self.base_img
         self.focus_depth = focus_depth
         self.unit = unit
-        self.img_onscreen = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
+        self.img_onscreen = [[datetime.timedelta(0) for x in range(nb_img_y)] for y in range(nb_img_x)]
         self.click_pos = Point(0, 0)
         self.prev_time = 0
         self.cur_time = 0
@@ -105,8 +107,8 @@ class LFImage:
         img_diff_x = int(round(diff_x / float(self.unit)))
         img_diff_y = int(round(diff_y / float(self.unit)))
 
-        self.next_img = Point(clamp(self.base_img.x + img_diff_x, 0, self.width - 1),
-                              clamp(self.base_img.y + img_diff_y, 0, self.height - 1))
+        self.next_img = Point(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
+                              clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1))
 
         if self.next_img != self.cur_img:
             self.update_images()
@@ -215,7 +217,7 @@ class TestSession:
 
         # Scale (slider) to allow refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=10, to=0, command=self.cur_img.refocus,
+        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command= lambda cmd=self.cur_img.refocus: cmd,
                                     showvalue=0, length=200, background=BG_COLOR)
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
@@ -258,6 +260,8 @@ class TestSession:
             f_tracking.write("<next>\n")
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
+            self.focus_scale.configure(from_=self.cur_img.nb_img_z-1)
+            self.focus_scale.set(self.cur_img.focus_depth)
             self.cur_img.update_images()
             self.display_img_index()
 
@@ -318,12 +322,12 @@ root.title("lf-tracking")
 root.configure(background=BG_COLOR)
 
 images = [None] * 6
-images[0] = LFImage("Bikes", 15, 15)
-images[1] = LFImage("Danger_de_Mort", 15, 15)
-images[2] = LFImage("Flowers", 15, 15)
-images[3] = LFImage("Fountain_&_Vincent_2", 15, 15)
-images[4] = LFImage("Friends_1", 15, 15)
-images[5] = LFImage("Stone_Pillars_Outside", 15, 15)
+images[0] = LFImage("Bikes",                 15, 15, 10)
+images[1] = LFImage("Danger_de_Mort",        15, 15, 10)
+images[2] = LFImage("Flowers",               15, 15, 10)
+images[3] = LFImage("Fountain_&_Vincent_2",  15, 15, 10)
+images[4] = LFImage("Friends_1",             15, 15, 10)
+images[5] = LFImage("Stone_Pillars_Outside", 15, 15, 10)
 
 question = "How would you answer the impairment of the test image (left) compared to the reference image (right)?"
 answers_scale = "1 : very annoying\n" \
