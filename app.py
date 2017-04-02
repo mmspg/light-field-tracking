@@ -76,7 +76,7 @@ class LFImage:
         self.next_img = self.base_img
         self.focus_depth = focus_depth
         self.unit = unit
-        self.img_duration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
+        self.img_onscreen = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
         self.click_pos = Point(0, 0)
         self.prev_time = 0
         self.cur_time = 0
@@ -140,19 +140,19 @@ class LFImage:
     def close_img(self):
         """Perform actions necessary when and image is replaced by another.
         
-        This method is used to write the end time and duration in the tracking.txt file.
+        This method is used to write the end time and on-screen time in the tracking.txt file.
         """
         self.prev_time = self.cur_time
         self.cur_time = datetime.datetime.now()
 
         if self.prev_time != 0:
-            duration = self.cur_time - self.prev_time
-            self.img_duration[self.cur_img.x][self.cur_img.y] += duration
-            total_duration = self.img_duration[self.cur_img.x][self.cur_img.y]
+            onscreen = self.cur_time - self.prev_time
+            self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
+            total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
-            f_tracking.write("end: {}  duration: {}  total duration: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
-                                                                                  duration,
-                                                                                  total_duration))
+            f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
+                                                                                  onscreen,
+                                                                                  total_onscreen))
 
     def set_panels(self, panels):
         """Configure the LFImage to use the given panels for display.
