@@ -6,7 +6,7 @@ BG_COLOR = "grey"
 IMG_PATH_PREFIX = "img/"
 
 f_tracking = open('tracking.txt', 'w')
-f_ratings = open('ratings.txt', 'w')
+f_answers = open('answers.txt', 'w')
 
 
 class FullScreenApp(object):
@@ -26,11 +26,14 @@ class FullScreenApp(object):
 
 
 def clamp(x, minimum, maximum):
+    """Clamps the value x between a minimum and a maximum."""
+
     assert (minimum <= maximum)
     return max(minimum, min(maximum, x))
 
 
 class Point:
+    ""
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -46,20 +49,32 @@ class Point:
 
 
 class LFImage:
-    def __init__(self, img_name, width, height, base_img=None, focus_point=0, unit=20):
+    """"Represents a light-field image."""
+
+    def __init__(self, img_name, width, height, base_img=None, focus_depth=0, unit=20):
+        """Initializes a light-field image.
+        
+        :param img_name: The name of the image (i.e. of the folder containing all its image files).
+        :param width: The number of images in the x-axis.
+        :param height: The number of images in the y-axis.
+        :param base_img: The Point representing the first image to display. If it is None, the middle center image is taken.
+        :param focus_depth: The initial depth that should be in focus.
+        :param unit: The number of pixels one should move the mouse to switch to the next image.
+        """
+
         self.img_name = img_name
         self.width = width
         self.height = height
 
         if base_img is None:
-            self.base_img = Point(width//2, height//2)
+            self.base_img = Point(width // 2, height // 2)
         else:
             self.base_img = base_img
 
         self.last_img = self.base_img
         self.cur_img = self.base_img
         self.next_img = self.base_img
-        self.focus_point = focus_point
+        self.focus_depth = focus_depth
         self.unit = unit
         self.img_duration = [[datetime.timedelta(0) for x in range(height)] for y in range(width)]
         self.click_pos = Point(0, 0)
@@ -67,13 +82,23 @@ class LFImage:
         self.cur_time = 0
         self.panels = None
 
-
     def click(self, click_pos):
+        """Stores the mouse position and the image diplayed at the time of the click.
+        
+        This method should be called whenever an image is clicked on.
+        
+        :param click_pos: The position of the mouse when clicking.
+        """
         self.click_pos = click_pos
         self.base_img = self.cur_img
-        return
 
     def move(self, move_pos):
+        """Change the image displayed w.r.t. the mouse position.
+
+        This method should be called when the mouse is dragged over an image.
+
+        :param move_pos: The current position of the mouse.
+        """
         diff_x = self.click_pos.x - move_pos.x
         diff_y = self.click_pos.y - move_pos.y
 
@@ -81,16 +106,22 @@ class LFImage:
         img_diff_y = int(round(diff_y / float(self.unit)))
 
         self.next_img = Point(clamp(self.base_img.x + img_diff_x, 0, self.width - 1),
-                        clamp(self.base_img.y + img_diff_y, 0, self.height - 1))
+                              clamp(self.base_img.y + img_diff_y, 0, self.height - 1))
 
         if self.next_img != self.cur_img:
             self.update_images()
 
     def refocus(self, new_focus):
-        self.focus_point = new_focus
+        """Displays the image corresponding to the given focus depth.
+        
+        :param new_focus: The depth to focus to image on.
+        """
+        self.focus_depth = new_focus
         self.update_images()
 
     def update_images(self):
+        """Updates the image displayed according to the current attributes of the LFImage."""
+
         self.close_img()
 
         self.last_img = self.cur_img
@@ -107,6 +138,10 @@ class LFImage:
         f_tracking.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def close_img(self):
+        """Perform actions necessary when and image is replaced by another.
+        
+        This method is used to write the end time and duration in the tracking.txt file.
+        """
         self.prev_time = self.cur_time
         self.cur_time = datetime.datetime.now()
 
@@ -116,42 +151,59 @@ class LFImage:
             total_duration = self.img_duration[self.cur_img.x][self.cur_img.y]
 
             f_tracking.write("end: {}  duration: {}  total duration: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
-                                                                         duration,
-                                                                         total_duration))
+                                                                                  duration,
+                                                                                  total_duration))
 
     def set_panels(self, panels):
+        """Configure the LFImage to use the given panels for display.
+        
+        :param panels: 
+        """
         self.panels = panels
 
 
 class TestSession:
-    def __init__(self, images, questions, answers_scale, answers):
+    """Represents a test session for the assessment of images."""
+
+    def __init__(self, images, question, answers_scale, possible_answers):
+        """Initializes a test session.
+        
+        :param images: The light-field images to use for the test session.
+        :param question: The question that should be asked.
+        :param answers_scale: A short text explaining the possible answers to the question.
+        :param answers: The possible answers to the question.
+        """
         self.images = images
-        self.questions = questions
+        self.question = question
         self.answers_scale = answers_scale
-        self.answers = answers
+        self.possible_answers = possible_answers
         self.panels = None
         self.focus_scale = None
         self.img_index = 0
         self.img_index_label = None
         self.message_label = None
         self.cur_img = images[self.img_index]
-        self.ratings = [None] * len(images)
+        self.answers = [None] * len(images)
         self.ended = False
 
         self.setup_gui()
 
         for img in self.images:
             img.set_panels(self.panels)
-            
+
         self.cur_img.update_images()
         self.display_img_index()
 
     def setup_gui(self):
+        """Sets up the graphical user interface needed for the test session"""
+
+        # Main frame containing all GUI objects
         main_frame = tk.Frame(background=BG_COLOR)
 
         tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
         tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=2)
 
+        # Panels where the two images are displayed
         self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
         self.panels[0].grid(row=1, column=0)
         self.panels[1].grid(row=1, column=2)
@@ -161,8 +213,10 @@ class TestSession:
         self.panels[1].bind('<Button-1>', self.click)
         self.panels[1].bind('<B1-Motion>', self.move)
 
+        # Scale (slider) to allow refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=10, to=0, command=self.cur_img.refocus, showvalue=0, length=200, background=BG_COLOR)
+        self.focus_scale = tk.Scale(focus_frame, from_=10, to=0, command=self.cur_img.refocus,
+                                    showvalue=0, length=200, background=BG_COLOR)
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
         tk.Label(focus_frame, text="Near", background=BG_COLOR).grid(row=2, column=0)
@@ -171,21 +225,23 @@ class TestSession:
         self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
         self.img_index_label.grid(row=2, column=0, columnspan=3)
 
-        question_label = tk.Label(main_frame, text=question, background=BG_COLOR)
+        question_label = tk.Label(main_frame, text=self.question, background=BG_COLOR)
         question_label.grid(row=3, column=0, columnspan=3)
 
-        answers_scale_label = tk.Label(main_frame, text=answers_scale, justify="left", background=BG_COLOR)
+        answers_scale_label = tk.Label(main_frame, text=self.answers_scale, justify="left", background=BG_COLOR)
         answers_scale_label.grid(row=4, column=0, columnspan=3)
 
+        # Frame containing all the buttons representing the possible answers
         buttons_frame = tk.Frame(main_frame, background=BG_COLOR)
 
-        for i in range(len(answers)):
-            btn = tk.Button(buttons_frame, text=str(answers[i]), command=lambda a=answers[i]: self.rate(a), width=6,
-                            highlightbackground=BG_COLOR)
+        for i in range(len(self.possible_answers)):
+            btn = tk.Button(buttons_frame, text=str(answers[i]), command=lambda a=self.possible_answers[i]: self.answer(a),
+                            width=6, highlightbackground=BG_COLOR)
             btn.grid(row=0, column=(i))
 
-            if len(answers) <= 9:
-                root.bind(str(i+1), lambda e, a=answers[i]: self.rate(a))
+            # We can answer with the keys 1-9 if the number of answers is smaller than 10
+            if len(self.possible_answers) <= 9:
+                root.bind(str(i + 1), lambda e, a=self.possible_answers[i]: self.answer(a))
 
         buttons_frame.grid(row=5, column=0, columnspan=3, pady=10)
 
@@ -194,7 +250,9 @@ class TestSession:
         root.protocol("WM_DELETE_WINDOW", self.close)
 
     def next_img(self, event):
-        if (self.img_index + 1)  <= (len(self.images)-1):
+        """Displays the next image"""
+
+        if not self.is_last_image():
             self.cur_img.close_img()
             self.cur_img.cur_time = 0
             f_tracking.write("<next>\n")
@@ -203,11 +261,15 @@ class TestSession:
             self.cur_img.update_images()
             self.display_img_index()
 
-    def rate(self, rating):
-        self.ratings[self.img_index] = rating
-        f_ratings.write("{:30} : {}\n".format(self.cur_img.img_name, rating))
+    def answer(self, answ):
+        """Stores the answer given by the user.
+        
+        :param answ: The answer.
+        """
+        self.answers[self.img_index] = answ
+        f_answers.write("{:30} : {}\n".format(self.cur_img.img_name, answ))
 
-        if self.is_rating_complete() and not self.ended:
+        if self.is_last_image() and not self.ended:
             self.ended = True
             end_msg = tk.Label(root, text="FINISHED", background=BG_COLOR)
             end_msg.pack(fill="both", expand="true")
@@ -215,32 +277,38 @@ class TestSession:
             self.next_img(None)
 
     def click(self, event):
+        """Method  called whenever an image is clicked on."""
+
         click_pos = Point(event.x, event.y)
         self.cur_img.click(click_pos)
         return
 
     def move(self, event):
+        """Method  called when the mouse is dragged over an image."""
+
         move_pos = Point(event.x, event.y)
         self.cur_img.move(move_pos)
         return
 
     def display_img_index(self):
-        self.img_index_label.configure(text="Image {}/{}".format(self.img_index+1, len(self.images)))
+        """Displays the index of the current image in a text label."""
 
-    def is_rating_complete(self):
-        ret = True
-        for r in self.ratings:
-            if r is None: ret = False
+        self.img_index_label.configure(text="Image {}/{}".format(self.img_index + 1, len(self.images)))
 
-        return ret
+    def is_last_image(self):
+        """Return True iff the current image displayed is the last one."""
+
+        return self.img_index >= (len(self.images) - 1)
 
     def close(self):
+        """Method called when the window is closed"""
+
         self.cur_img.close_img()
 
         f_tracking.flush()
         f_tracking.close()
-        f_ratings.flush()
-        f_ratings.close()
+        f_answers.flush()
+        f_answers.close()
 
         root.quit()
 
@@ -257,7 +325,7 @@ images[3] = LFImage("Fountain_&_Vincent_2", 15, 15)
 images[4] = LFImage("Friends_1", 15, 15)
 images[5] = LFImage("Stone_Pillars_Outside", 15, 15)
 
-question = "How would you rate the impairment of the test image (left) compared to the reference image (right)?"
+question = "How would you answer the impairment of the test image (left) compared to the reference image (right)?"
 answers_scale = "1 : very annoying\n" \
                 "2 : annoying\n" \
                 "3 : slightly annoying\n" \
@@ -266,7 +334,6 @@ answers_scale = "1 : very annoying\n" \
 answers = [1, 2, 3, 4, 5]
 
 TestSession(images, question, answers_scale, answers)
-
 
 app = FullScreenApp(root)
 root.mainloop()
