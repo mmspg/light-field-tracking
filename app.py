@@ -112,7 +112,6 @@ class LFImage:
                               clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1))
 
         if self.next_img != self.cur_img:
-            self.reset_focus()
             self.update_images()
 
     def refocus(self, new_focus):
@@ -120,14 +119,8 @@ class LFImage:
         
         :param new_focus: The depth to focus to image on.
         """
-        self.cur_img = Point(self.nb_img_x // 2, self.nb_img_y // 2)
+        self.next_img = Point(self.nb_img_x // 2, self.nb_img_y // 2)
         self.focus_depth = int(new_focus)
-        self.update_images()
-
-    def reset_focus(self):
-        """Resets the focus depth so that everything is in focus"""
-
-        self.focus_depth = None
         self.update_images()
 
     def update_images(self):
@@ -137,7 +130,7 @@ class LFImage:
 
         self.last_img = self.cur_img
         self.cur_img = self.next_img
-        print(self.focus_depth)
+
         if self.focus_depth is None:
             img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
         else:
@@ -194,6 +187,7 @@ class TestSession:
         self.possible_answers = possible_answers
         self.panels = None
         self.focus_scale = None
+        self.is_focus_enabled = False
         self.img_index = 0
         self.img_index_label = None
         self.message_label = None
@@ -230,7 +224,7 @@ class TestSession:
 
         # Scale (slider) to allow refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command= self.cur_img.refocus,
+        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command= self.refocus,
                                     showvalue=0, length=200, background=BG_COLOR)
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
@@ -274,7 +268,8 @@ class TestSession:
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
             self.focus_scale.configure(from_=self.cur_img.nb_img_z-1)
-            self.focus_scale.set(self.cur_img.focus_depth)
+            if self.cur_img.focus_depth is not None:
+                self.focus_scale.set(self.cur_img.focus_depth)
             self.cur_img.update_images()
             self.display_img_index()
 
@@ -303,9 +298,23 @@ class TestSession:
     def move(self, event):
         """Method  called when the mouse is dragged over an image."""
 
+        self.reset_focus()
+
         move_pos = Point(event.x, event.y)
         self.cur_img.move(move_pos)
         return
+
+    def refocus(self, new_focus):
+        if self.is_focus_enabled:
+            self.cur_img.refocus(new_focus)
+        else:
+            self.is_focus_enabled = True
+
+    def reset_focus(self):
+        self.is_focus_enabled = False
+        self.focus_scale.set(0)
+        self.cur_img.focus_depth = None
+        self.cur_img.update_images()
 
     def display_img_index(self):
         """Displays the index of the current image in a text label."""
