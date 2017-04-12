@@ -52,7 +52,7 @@ class Point:
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_z, base_img=None, focus_depth=0, unit=20):
+    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_z, base_img=None, focus_depth=None, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
@@ -112,6 +112,7 @@ class LFImage:
                               clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1))
 
         if self.next_img != self.cur_img:
+            self.reset_focus()
             self.update_images()
 
     def refocus(self, new_focus):
@@ -119,7 +120,14 @@ class LFImage:
         
         :param new_focus: The depth to focus to image on.
         """
-        self.focus_depth = new_focus
+        self.cur_img = Point(self.nb_img_x // 2, self.nb_img_y // 2)
+        self.focus_depth = int(new_focus)
+        self.update_images()
+
+    def reset_focus(self):
+        """Resets the focus depth so that everything is in focus"""
+
+        self.focus_depth = None
         self.update_images()
 
     def update_images(self):
@@ -129,8 +137,12 @@ class LFImage:
 
         self.last_img = self.cur_img
         self.cur_img = self.next_img
+        print(self.focus_depth)
+        if self.focus_depth is None:
+            img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
+        else:
+            img_name = '{}/{:03}_{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y, self.focus_depth)
 
-        img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
         new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
 
         self.panels[0].configure(image=new_img)
@@ -218,7 +230,7 @@ class TestSession:
 
         # Scale (slider) to allow refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command= lambda cmd=self.cur_img.refocus: cmd,
+        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command= self.cur_img.refocus,
                                     showvalue=0, length=200, background=BG_COLOR)
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
@@ -327,14 +339,14 @@ root.title("lf-tracking")
 root.configure(background=BG_COLOR)
 
 images = [None] * 6
-images[0] = LFImage("Bikes",                 15, 15, 10)
-images[1] = LFImage("Danger_de_Mort",        15, 15, 10)
-images[2] = LFImage("Flowers",               15, 15, 10)
-images[3] = LFImage("Fountain_&_Vincent_2",  15, 15, 10)
-images[4] = LFImage("Friends_1",             15, 15, 10)
-images[5] = LFImage("Stone_Pillars_Outside", 15, 15, 10)
+images[0] = LFImage("Bikes",                 15, 15, 11)
+images[1] = LFImage("Danger_de_Mort",        15, 15, 11)
+images[2] = LFImage("Flowers",               15, 15, 11)
+images[3] = LFImage("Fountain_&_Vincent_2",  15, 15, 11)
+images[4] = LFImage("Friends_1",             15, 15, 11)
+images[5] = LFImage("Stone_Pillars_Outside", 15, 15, 11)
 
-question = "How would you answer the impairment of the test image (left) compared to the reference image (right)?"
+question = "How would you rate the impairment of the test image (left) compared to the reference image (right)?"
 answers_scale = "1 : very annoying\n" \
                 "2 : annoying\n" \
                 "3 : slightly annoying\n" \
