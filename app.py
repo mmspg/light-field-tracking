@@ -2,7 +2,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import datetime
 
-BG_COLOR = "grey"
+BG_COLOR = "darkgrey"
 IMG_PATH_PREFIX = "img/"
 
 f_tracking = open('tracking.txt', 'w')
@@ -173,18 +173,18 @@ class LFImage:
 class TestSession:
     """Represents a test session for the assessment of images."""
 
-    def __init__(self, images, question, answers_scale, possible_answers):
+    def __init__(self, images, question, possible_answers, answers_description):
         """Initializes a test session.
         
         :param images: The light-field images to use for the test session.
         :param question: The question that should be asked.
-        :param answers_scale: A short text explaining the possible answers to the question.
+        :param answers_description: A short text describing the possible answers to the question.
         :param answers: The possible answers to the question.
         """
         self.images = images
         self.question = question
-        self.answers_scale = answers_scale
         self.possible_answers = possible_answers
+        self.answers_description = answers_description
         self.panels = None
         self.focus_scale = None
         self.is_focus_enabled = False
@@ -209,13 +209,16 @@ class TestSession:
         # Main frame containing all GUI objects
         main_frame = tk.Frame(background=BG_COLOR)
 
-        tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=0, column=0)
-        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=0, column=2)
+        self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
+        self.img_index_label.grid(row=0, column=0, columnspan=3)
+
+        tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=1, column=0, pady=5)
+        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=1, column=2)
 
         # Panels where the two images are displayed
         self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
-        self.panels[0].grid(row=1, column=0)
-        self.panels[1].grid(row=1, column=2)
+        self.panels[0].grid(row=2, column=0)
+        self.panels[1].grid(row=2, column=2)
 
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
@@ -229,30 +232,27 @@ class TestSession:
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
         tk.Label(focus_frame, text="Near", background=BG_COLOR).grid(row=2, column=0)
-        focus_frame.grid(row=1, column=1)
+        focus_frame.grid(row=2, column=1)
 
-        self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
-        self.img_index_label.grid(row=2, column=0, columnspan=3)
-
-        question_label = tk.Label(main_frame, text=self.question, background=BG_COLOR)
+        question_label = tk.Label(main_frame, text=self.question, background=BG_COLOR, pady=30)
         question_label.grid(row=3, column=0, columnspan=3)
-
-        answers_scale_label = tk.Label(main_frame, text=self.answers_scale, justify="left", background=BG_COLOR)
-        answers_scale_label.grid(row=4, column=0, columnspan=3)
 
         # Frame containing all the buttons representing the possible answers
         buttons_frame = tk.Frame(main_frame, background=BG_COLOR)
 
         for i in range(len(self.possible_answers)):
-            btn = tk.Button(buttons_frame, text=str(answers[i]), command=lambda a=self.possible_answers[i]: self.answer(a),
-                            width=6, highlightbackground=BG_COLOR)
-            btn.grid(row=0, column=(i))
+            answer = self.possible_answers[i]
+            btn_width = 12
+            btn = tk.Button(buttons_frame, text=str(answer), command=lambda a=answer: self.answer(a),
+                            width=btn_width, highlightbackground=BG_COLOR)
+            btn.grid(row=0, column=(i), padx = 12)
+            tk.Label(buttons_frame, text=self.answers_description[i], width=btn_width, wraplength=btn_width*10, background=BG_COLOR).grid(row=1, column=(i))
 
             # We can answer with the keys 1-9 if the number of answers is smaller than 10
             if len(self.possible_answers) <= 9:
                 root.bind(str(i + 1), lambda e, a=self.possible_answers[i]: self.answer(a))
 
-        buttons_frame.grid(row=5, column=0, columnspan=3, pady=10)
+        buttons_frame.grid(row=5, column=0, columnspan=3)
 
         main_frame.place(anchor="c", relx=.50, rely=.50)
 
@@ -356,14 +356,14 @@ images[4] = LFImage("Friends_1",             15, 15, 11)
 images[5] = LFImage("Stone_Pillars_Outside", 15, 15, 11)
 
 question = "How would you rate the impairment of the test image (left) compared to the reference image (right)?"
-answers_scale = "1 : very annoying\n" \
-                "2 : annoying\n" \
-                "3 : slightly annoying\n" \
-                "4 : perceptible, but not annoying\n" \
-                "5 : imperceptible"
 answers = [1, 2, 3, 4, 5]
+answers_description = ["Very annoying",
+                       "Annoying",
+                       "Slightly annoying",
+                       "Perceptible, but not annoying",
+                       "Imperceptible"]
 
-TestSession(images, question, answers_scale, answers)
+TestSession(images, question, answers, answers_description)
 
 app = FullScreenApp(root)
 root.mainloop()
