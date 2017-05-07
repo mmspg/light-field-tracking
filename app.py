@@ -2,7 +2,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import datetime
 
-BG_COLOR = "darkgrey"
+BG_COLOR = "#959595" #mid-grey
 IMG_PATH_PREFIX = "img/"
 
 f_tracking = open('tracking.txt', 'w')
@@ -10,6 +10,8 @@ f_answers = open('answers.txt', 'w')
 
 
 class FullScreenApp(object):
+    """"Used to display the app in a fulscreen window."""
+
     def __init__(self, master, **kwargs):
         self.master = master
         pad = 3
@@ -33,7 +35,7 @@ def clamp(x, minimum, maximum):
 
 
 class Point:
-    "Represents a 2D point"
+    """"Represents a 2D point."""
 
     def __init__(self, x, y):
         self.x = x
@@ -59,7 +61,8 @@ class LFImage:
         :param nb_img_x: The number of images in the x-axis.
         :param nb_img_y: The number of images in the y-axis.
         :param nb_img_z: The number of images in the z-axis (i.e. depth)
-        :param base_img: The Point representing the first image to display. If it is None, the middle center image is taken.
+        :param base_img: The Point representing the first image to display. 
+                         If it is None, the middle center image is taken.
         :param focus_depth: The initial depth that should be in focus.
         :param unit: The number of pixels one should move the mouse to switch to the next image.
         """
@@ -78,6 +81,7 @@ class LFImage:
         self.cur_img = self.base_img
         self.next_img = self.base_img
         self.focus_depth = focus_depth
+        self.depth_map = Image.open("{}/depth_map/{}.png".format(IMG_PATH_PREFIX, self.img_name)).load()
         self.unit = unit
         self.img_onscreen = [[datetime.timedelta(0) for x in range(nb_img_y)] for y in range(nb_img_x)]
         self.click_pos = Point(0, 0)
@@ -114,14 +118,26 @@ class LFImage:
         if self.next_img != self.cur_img:
             self.update_images()
 
-    def refocus(self, new_focus):
+    def refocus_to_depth(self, focus_depth):
         """Displays the image corresponding to the given focus depth.
         
-        :param new_focus: The depth to focus to image on.
+        :param focus_depth: The depth to focus to image on.
         """
         self.next_img = Point(self.nb_img_x // 2, self.nb_img_y // 2)
-        self.focus_depth = int(new_focus)
+        self.focus_depth = int(focus_depth)
         self.update_images()
+
+    def refocus_to_point(self, event):
+        """Refocus the current image on the given point using the depth map
+
+        :param event: The event that triggered the refocusing and contains the point coordinates
+        """
+        print(event.x, event.y)
+        depth_map_value = self.depth_map[event.x, event.y] / 255
+        print(depth_map_value)
+        focus_depth = round(depth_map_value * (self.nb_img_z-1))
+        print(focus_depth)
+        self.refocus_to_depth(focus_depth)
 
     def update_images(self):
         """Updates the image displayed according to the current attributes of the LFImage."""
@@ -159,8 +175,8 @@ class LFImage:
             total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
             f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
-                                                                                  onscreen,
-                                                                                  total_onscreen))
+                                                                                    onscreen,
+                                                                                    total_onscreen))
 
     def set_panels(self, panels):
         """Configure the LFImage to use the given panels for display.
@@ -178,8 +194,8 @@ class TestSession:
         
         :param images: The light-field images to use for the test session.
         :param question: The question that should be asked.
+        :param possible_answers: The possible answers to the question.
         :param answers_description: A short text describing the possible answers to the question.
-        :param answers: The possible answers to the question.
         """
         self.images = images
         self.question = question
@@ -222,12 +238,14 @@ class TestSession:
 
         self.panels[0].bind('<Button-1>', self.click)
         self.panels[0].bind('<B1-Motion>', self.move)
+        self.panels[0].bind('<Double-Button-1>', self.refocus_to_point)
         self.panels[1].bind('<Button-1>', self.click)
         self.panels[1].bind('<B1-Motion>', self.move)
+        self.panels[1].bind('<Double-Button-1>', self.refocus_to_point)
 
         # Scale (slider) to allow refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command= self.refocus,
+        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command=self.refocus_to_depth,
                                     showvalue=0, length=200, background=BG_COLOR)
         self.focus_scale.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
@@ -245,7 +263,7 @@ class TestSession:
             btn_width = 12
             btn = tk.Button(buttons_frame, text=str(answer), command=lambda a=answer: self.answer(a),
                             width=btn_width, highlightbackground=BG_COLOR)
-            btn.grid(row=0, column=(i), padx = 12)
+            btn.grid(row=0, column=i, padx=12)
             tk.Label(buttons_frame, text=self.answers_description[i], width=btn_width, wraplength=btn_width*10, background=BG_COLOR).grid(row=1, column=(i))
 
             # We can answer with the keys 1-9 if the number of answers is smaller than 10
@@ -304,14 +322,16 @@ class TestSession:
         self.cur_img.move(move_pos)
         return
 
-    def refocus(self, new_focus):
+    def refocus_to_point(self, event):
+        self.cur_img.refocus_to_point(event)
+
+    def refocus_to_depth(self, focus_depth):
         if self.is_focus_enabled:
-            self.cur_img.refocus(new_focus)
+            self.cur_img.refocus_to_depth(focus_depth)
         else:
             self.is_focus_enabled = True
 
     def reset_focus(self):
-        self.is_focus_enabled = False
         self.focus_scale.set(0)
         self.cur_img.focus_depth = None
         self.cur_img.update_images()
