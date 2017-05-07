@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import ImageTk, Image
+from threading import Timer
 import datetime
 
 BG_COLOR = "#959595" #mid-grey
@@ -132,12 +133,26 @@ class LFImage:
 
         :param event: The event that triggered the refocusing and contains the point coordinates
         """
-        print(event.x, event.y)
         depth_map_value = self.depth_map[event.x, event.y] / 255
-        print(depth_map_value)
         focus_depth = round(depth_map_value * (self.nb_img_z-1))
-        print(focus_depth)
-        self.refocus_to_depth(focus_depth)
+        self.refocus_animation(focus_depth)
+
+    def refocus_animation(self, depth):
+        """Animates the refocusing to the given depth in a smooth transition
+        
+        :param depth: The final depth at the end of the animation
+        """
+        if self.focus_depth is not None:
+            if self.focus_depth != depth:
+                depthDelta = 1 if (depth - self.focus_depth > 0) else -1
+                new_depth = self.focus_depth + depthDelta
+                self.refocus_to_depth(new_depth)
+
+                if(new_depth != depth):
+                    Timer(0.02, lambda: self.refocus_animation(depth)).start()
+        else:
+            self.refocus_to_depth(depth)
+
 
     def update_images(self):
         """Updates the image displayed according to the current attributes of the LFImage."""
@@ -322,14 +337,22 @@ class TestSession:
         self.cur_img.move(move_pos)
         return
 
-    def refocus_to_point(self, event):
-        self.cur_img.refocus_to_point(event)
-
     def refocus_to_depth(self, focus_depth):
+        """Displays the image corresponding to the given focus depth.
+        
+        :param focus_depth: The depth to focus to image on.
+        """
         if self.is_focus_enabled:
             self.cur_img.refocus_to_depth(focus_depth)
         else:
             self.is_focus_enabled = True
+
+    def refocus_to_point(self, event):
+        """Refocus the current image on the given point using the depth map
+
+        :param event: The event that triggered the refocusing and contains the point coordinates
+        """
+        self.cur_img.refocus_to_point(event)
 
     def reset_focus(self):
         self.focus_scale.set(0)
