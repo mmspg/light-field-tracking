@@ -149,7 +149,7 @@ class LFImage:
                 self.refocus_to_depth(new_depth)
 
                 if(new_depth != depth):
-                    Timer(0.02, lambda: self.refocus_animation(depth)).start()
+                    Timer(0.01, lambda: self.refocus_animation(depth)).start()
         else:
             self.refocus_to_depth(depth)
 
@@ -217,8 +217,6 @@ class TestSession:
         self.possible_answers = possible_answers
         self.answers_description = answers_description
         self.panels = None
-        self.focus_scale = None
-        self.is_focus_enabled = False
         self.img_index = 0
         self.img_index_label = None
         self.message_label = None
@@ -258,15 +256,6 @@ class TestSession:
         self.panels[1].bind('<B1-Motion>', self.move)
         self.panels[1].bind('<Double-Button-1>', self.refocus_to_point)
 
-        # Scale (slider) to allow refocusing
-        focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_scale = tk.Scale(focus_frame, from_=self.cur_img.nb_img_z-1, to=0, command=self.refocus_to_depth,
-                                    showvalue=0, length=200, background=BG_COLOR)
-        self.focus_scale.grid(row=1, column=0)
-        tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
-        tk.Label(focus_frame, text="Near", background=BG_COLOR).grid(row=2, column=0)
-        focus_frame.grid(row=2, column=1)
-
         question_label = tk.Label(main_frame, text=self.question, background=BG_COLOR, pady=30)
         question_label.grid(row=3, column=0, columnspan=3)
 
@@ -300,9 +289,6 @@ class TestSession:
             f_tracking.write("<next>\n")
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
-            self.focus_scale.configure(from_=self.cur_img.nb_img_z-1)
-            if self.cur_img.focus_depth is not None:
-                self.focus_scale.set(self.cur_img.focus_depth)
             self.cur_img.update_images()
             self.display_img_index()
 
@@ -342,10 +328,8 @@ class TestSession:
         
         :param focus_depth: The depth to focus to image on.
         """
-        if self.is_focus_enabled:
-            self.cur_img.refocus_to_depth(focus_depth)
-        else:
-            self.is_focus_enabled = True
+        self.cur_img.refocus_to_depth(focus_depth)
+
 
     def refocus_to_point(self, event):
         """Refocus the current image on the given point using the depth map
@@ -355,7 +339,6 @@ class TestSession:
         self.cur_img.refocus_to_point(event)
 
     def reset_focus(self):
-        self.focus_scale.set(0)
         self.cur_img.focus_depth = None
         self.cur_img.update_images()
 
