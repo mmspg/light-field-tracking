@@ -176,6 +176,25 @@ class LFImage:
 
         f_tracking.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
+    def preview(self):
+        """Display a preview of the image by going through a predefined subset of the sub-aperture images."""
+
+        def preview_inner(index):
+            img_name = '{}/007_{:03}.png'.format(self.img_name, index)
+            new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
+            self.panels[0].configure(image=new_img)
+            self.panels[0].image = new_img
+            self.panels[1].configure(image=new_img)
+            self.panels[1].image = new_img
+
+            if(index < 14):
+                Timer(0.5, lambda: preview_inner(index+1)).start()
+            else:
+                self.update_images()
+
+        preview_inner(0)
+
+
     def close_img(self):
         """Perform actions necessary when and image is replaced by another.
         
@@ -204,7 +223,7 @@ class LFImage:
 class TestSession:
     """Represents a test session for the assessment of images."""
 
-    def __init__(self, images, question, possible_answers, answers_description):
+    def __init__(self, images, question, possible_answers, answers_description, show_preview):
         """Initializes a test session.
         
         :param images: The light-field images to use for the test session.
@@ -216,6 +235,7 @@ class TestSession:
         self.question = question
         self.possible_answers = possible_answers
         self.answers_description = answers_description
+        self.show_preview = show_preview
         self.panels = None
         self.img_index = 0
         self.img_index_label = None
@@ -229,8 +249,12 @@ class TestSession:
         for img in self.images:
             img.set_panels(self.panels)
 
-        self.cur_img.update_images()
         self.display_img_index()
+
+        if (self.show_preview):
+            self.cur_img.preview()
+        else:
+            self.cur_img.update_images()
 
     def setup_gui(self):
         """Sets up the graphical user interface needed for the test session"""
@@ -289,8 +313,12 @@ class TestSession:
             f_tracking.write("<next>\n")
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
-            self.cur_img.update_images()
             self.display_img_index()
+
+            if(self.show_preview):
+                self.cur_img.preview()
+            else:
+                self.cur_img.update_images()
 
     def answer(self, answ):
         """Stores the answer given by the user.
@@ -329,7 +357,6 @@ class TestSession:
         :param focus_depth: The depth to focus to image on.
         """
         self.cur_img.refocus_to_depth(focus_depth)
-
 
     def refocus_to_point(self, event):
         """Refocus the current image on the given point using the depth map
@@ -389,7 +416,7 @@ answers_description = ["Very annoying",
                        "Perceptible, but not annoying",
                        "Imperceptible"]
 
-TestSession(images, question, answers, answers_description)
+TestSession(images, question, answers, answers_description, show_preview=True)
 
 app = FullScreenApp(root)
 root.mainloop()
