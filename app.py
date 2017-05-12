@@ -6,8 +6,9 @@ import datetime
 BG_COLOR = "#959595" #mid-grey
 IMG_PATH_PREFIX = "img/"
 
-f_tracking = open('tracking.txt', 'w')
-f_answers = open('answers.txt', 'w')
+timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%X')
+f_tracking = open(timestamp+'-tracking.txt', 'w')
+f_answers = open(timestamp+'-answers.txt', 'w')
 
 
 class FullScreenApp(object):
@@ -35,32 +36,13 @@ def clamp(x, minimum, maximum):
     return max(minimum, min(maximum, x))
 
 
-class Point:
-    """"Represents a 2D point."""
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __str__(self):
-        return "({}, {})".format(self.x, self.y)
-
 class SubapertureImage:
     """"Represents a sub-aperture image via its coordinates"""
 
-    def __init__(self, x, y, depth):
+    def __init__(self, x, y, focus_depth):
         self.x = x
         self.y = y
-        self.depth = depth
+        self.focus_depth = focus_depth
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -72,19 +54,19 @@ class SubapertureImage:
         return not self.__eq__(other)
 
     def __str__(self):
-        return "({}, {}, )".format(self.x, self.y, self.depth)
+        return "({}, {}, )".format(self.x, self.y, self.focus_depth)
 
 
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_z, base_img=None, focus_depth=None, unit=20):
+    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, base_img=None, focus_depth=None, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
         :param nb_img_x: The number of images in the x-axis.
         :param nb_img_y: The number of images in the y-axis.
-        :param nb_img_z: The number of images in the z-axis (i.e. depth)
+        :param nb_img_depth: The number of depth images (i.e. z-axis)
         :param base_img: The Point representing the first image to display. 
                          If it is None, the middle center image is taken.
         :param focus_depth: The initial depth that should be in focus.
@@ -94,20 +76,19 @@ class LFImage:
         self.img_name = img_name
         self.nb_img_x = nb_img_x
         self.nb_img_y = nb_img_y
-        self.nb_img_z = nb_img_z
+        self.nb_img_depth = nb_img_depth
 
         if base_img is None:
-            self.base_img = Point(nb_img_x // 2, nb_img_y // 2)
+            self.base_img = SubapertureImage(nb_img_x // 2, nb_img_y // 2, focus_depth)
         else:
             self.base_img = base_img
 
         self.cur_img = None
         self.next_img = self.base_img
-        self.focus_depth = focus_depth
         self.depth_map = Image.open("{}/depth_map/{}.png".format(IMG_PATH_PREFIX, self.img_name)).load()
         self.unit = unit
         self.img_onscreen = [[datetime.timedelta(0) for x in range(nb_img_y)] for y in range(nb_img_x)]
-        self.click_pos = Point(0, 0)
+        self.click_pos = (0, 0)
         self.prev_time = 0
         self.cur_time = 0
         self.panels = None
@@ -129,14 +110,15 @@ class LFImage:
 
         :param move_pos: The current position of the mouse.
         """
-        diff_x = self.click_pos.x - move_pos.x
-        diff_y = self.click_pos.y - move_pos.y
+        diff_x = self.click_pos[0] - move_pos[0]
+        diff_y = self.click_pos[1] - move_pos[1]
 
         img_diff_x = int(round(diff_x / float(self.unit)))
         img_diff_y = int(round(diff_y / float(self.unit)))
 
-        self.next_img = Point(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
-                              clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1))
+        self.next_img = SubapertureImage(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
+                                         clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1),
+                                         None)
 
         self.update_images()
 
@@ -145,8 +127,7 @@ class LFImage:
         
         :param focus_depth: The depth to focus to image on.
         """
-        self.next_img = Point(self.nb_img_x // 2, self.nb_img_y // 2)
-        self.focus_depth = int(focus_depth)
+        self.next_img = SubapertureImage(self.nb_img_x // 2, self.nb_img_y // 2, int(focus_depth))
         self.update_images()
 
     def refocus_to_point(self, event):
@@ -155,7 +136,7 @@ class LFImage:
         :param event: The event that triggered the refocusing and contains the point coordinates
         """
         depth_map_value = self.depth_map[event.x, event.y] / 255
-        focus_depth = round(depth_map_value * (self.nb_img_z-1))
+        focus_depth = round(depth_map_value * (self.nb_img_depth-1))
         self.refocus_animation(focus_depth)
 
     def refocus_animation(self, depth):
@@ -163,10 +144,10 @@ class LFImage:
         
         :param depth: The final depth at the end of the animation
         """
-        if self.focus_depth is not None:
-            if self.focus_depth != depth:
-                depthDelta = 1 if (depth - self.focus_depth > 0) else -1
-                new_depth = self.focus_depth + depthDelta
+        if self.cur_img.focus_depth is not None:
+            if self.cur_img.focus_depth != depth:
+                depthDelta = 1 if (depth - self.cur_img.focus_depth > 0) else -1
+                new_depth = self.cur_img.focus_depth + depthDelta
                 self.refocus_to_depth(new_depth)
 
                 if(new_depth != depth):
@@ -183,10 +164,10 @@ class LFImage:
 
             self.cur_img = self.next_img
 
-            if self.focus_depth is None:
+            if self.cur_img.focus_depth is None:
                 img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
             else:
-                img_name = '{}/{:03}_{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y, self.focus_depth)
+                img_name = '{}/{:03}_{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y, self.cur_img.focus_depth)
 
             new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
 
@@ -263,7 +244,6 @@ class TestSession:
         self.message_label = None
         self.cur_img = images[self.img_index]
         self.answers = [None] * len(images)
-        self.ended = False
 
         self.setup_gui()
 
@@ -323,7 +303,7 @@ class TestSession:
 
         main_frame.place(anchor="c", relx=.50, rely=.50)
 
-        root.protocol("WM_DELETE_WINDOW", self.close)
+        root.protocol("WM_DELETE_WINDOW", self.close_window)
 
     def next_img(self, event):
         """Displays the next image"""
@@ -331,10 +311,11 @@ class TestSession:
         if not self.is_last_image():
             self.cur_img.close_img()
             self.cur_img.cur_time = 0
-            f_tracking.write("<next>\n")
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
+
             self.display_img_index()
+            f_tracking.write("\n")
 
             if(self.show_preview):
                 self.cur_img.preview()
@@ -349,27 +330,21 @@ class TestSession:
         self.answers[self.img_index] = answ
         f_answers.write("{:30} : {}\n".format(self.cur_img.img_name, answ))
 
-        if self.is_last_image() and not self.ended:
-            self.ended = True
-            end_msg = tk.Label(root, text="FINISHED", background=BG_COLOR)
-            end_msg.pack(fill="both", expand="true")
+        if self.is_last_image():
+            self.finish_test_session()
         else:
             self.next_img(None)
 
     def click(self, event):
         """Method  called whenever an image is clicked on."""
 
-        click_pos = Point(event.x, event.y)
-        self.cur_img.click(click_pos)
+        self.cur_img.click((event.x, event.y))
         return
 
     def move(self, event):
         """Method  called when the mouse is dragged over an image."""
 
-        self.reset_focus()
-
-        move_pos = Point(event.x, event.y)
-        self.cur_img.move(move_pos)
+        self.cur_img.move((event.x, event.y))
         return
 
     def refocus_to_depth(self, focus_depth):
@@ -386,10 +361,6 @@ class TestSession:
         """
         self.cur_img.refocus_to_point(event)
 
-    def reset_focus(self):
-        self.cur_img.focus_depth = None
-        self.cur_img.update_images()
-
     def display_img_index(self):
         """Displays the index of the current image in a text label."""
 
@@ -400,9 +371,7 @@ class TestSession:
 
         return self.img_index >= (len(self.images) - 1)
 
-    def close(self):
-        """Method called when the window is closed"""
-
+    def finish_test_session(self):
         self.cur_img.close_img()
 
         f_tracking.flush()
@@ -410,6 +379,13 @@ class TestSession:
         f_answers.flush()
         f_answers.close()
 
+        end_msg = tk.Label(root, text="FINISHED", background=BG_COLOR)
+        end_msg.pack(fill="both", expand="true")
+
+    def close_window(self):
+        """Method called when the window is closed"""
+
+        self.finish_test_session()
         root.quit()
 
 
