@@ -51,6 +51,29 @@ class Point:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        return "({}, {})".format(self.x, self.y)
+
+class SubapertureImage:
+    """"Represents a sub-aperture image via its coordinates"""
+
+    def __init__(self, x, y, depth):
+        self.x = x
+        self.y = y
+        self.depth = depth
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        return "({}, {}, )".format(self.x, self.y, self.depth)
+
 
 class LFImage:
     """"Represents a light-field image."""
@@ -78,8 +101,7 @@ class LFImage:
         else:
             self.base_img = base_img
 
-        self.last_img = self.base_img
-        self.cur_img = self.base_img
+        self.cur_img = None
         self.next_img = self.base_img
         self.focus_depth = focus_depth
         self.depth_map = Image.open("{}/depth_map/{}.png".format(IMG_PATH_PREFIX, self.img_name)).load()
@@ -116,8 +138,7 @@ class LFImage:
         self.next_img = Point(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
                               clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1))
 
-        if self.next_img != self.cur_img:
-            self.update_images()
+        self.update_images()
 
     def refocus_to_depth(self, focus_depth):
         """Displays the image corresponding to the given focus depth.
@@ -155,26 +176,26 @@ class LFImage:
 
 
     def update_images(self):
-        """Updates the image displayed according to the current attributes of the LFImage."""
+        """Updates the image displayed according to the next_img attribute"""
 
-        self.close_img()
+        if self.next_img != self.cur_img:
+            self.close_img()
 
-        self.last_img = self.cur_img
-        self.cur_img = self.next_img
+            self.cur_img = self.next_img
 
-        if self.focus_depth is None:
-            img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
-        else:
-            img_name = '{}/{:03}_{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y, self.focus_depth)
+            if self.focus_depth is None:
+                img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
+            else:
+                img_name = '{}/{:03}_{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y, self.focus_depth)
 
-        new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
+            new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
 
-        self.panels[0].configure(image=new_img)
-        self.panels[0].image = new_img
-        self.panels[1].configure(image=new_img)
-        self.panels[1].image = new_img
+            self.panels[0].configure(image=new_img)
+            self.panels[0].image = new_img
+            self.panels[1].configure(image=new_img)
+            self.panels[1].image = new_img
 
-        f_tracking.write("Displaying '{}'  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
+            f_tracking.write("{}  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def preview(self):
         """Display a preview of the image by going through a predefined subset of the sub-aperture images."""
@@ -416,7 +437,7 @@ answers_description = ["Very annoying",
                        "Perceptible, but not annoying",
                        "Imperceptible"]
 
-TestSession(images, question, answers, answers_description, show_preview=True)
+TestSession(images, question, answers, answers_description, show_preview=False)
 
 app = FullScreenApp(root)
 root.mainloop()
