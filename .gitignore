@@ -1,3 +1,4 @@
 .DS_Store
 *.txt
 .idea/workspace.xml
+__pycache__
