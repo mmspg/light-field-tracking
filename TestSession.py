@@ -35,13 +35,14 @@ class TestSession:
         i = 0
         # Link the panels to each image
         for img in self.images:
-            if(preload_images):
-                i+=1
+            if preload_images:
+                i += 1
                 print("Loading image {}/{}...".format(i, len(self.images)))
                 img.load_images()
 
-        if(show_preview):
-            self.start_btn = tk.Button(self.root, text="START", command=self.start_session, highlightbackground=BG_COLOR)
+        if show_preview:
+            self.start_btn = tk.Button(self.root, text="START", command=self.start_session,
+                                       highlightbackground=BG_COLOR)
             self.start_btn.pack(expand=True)
         else:
             self.start_session()
@@ -56,7 +57,7 @@ class TestSession:
             img.set_test_image_side(self.test_image_side)
 
         # Start by either showing the preview or the normal interactive view
-        if (self.show_preview):
+        if self.show_preview:
             self.start_btn.destroy()
             self.cur_img.preview()
         else:
@@ -98,7 +99,8 @@ class TestSession:
             btn = tk.Button(buttons_frame, text=str(answer), command=lambda a=answer: self.answer(a),
                             width=btn_width, highlightbackground=BG_COLOR)
             btn.grid(row=0, column=i, padx=12)
-            tk.Label(buttons_frame, text=self.answers_description[i], width=btn_width, wraplength=btn_width*10, background=BG_COLOR).grid(row=1, column=(i))
+            tk.Label(buttons_frame, text=self.answers_description[i], width=btn_width, wraplength=btn_width * 10,
+                     background=BG_COLOR).grid(row=1, column=(i))
 
             # We can answer with the keys 1-9 if the number of answers is smaller than 10
             if len(self.possible_answers) <= 9:
@@ -109,7 +111,6 @@ class TestSession:
         main_frame.place(anchor="c", relx=.50, rely=.50)
 
         self.display_img_index()
-
 
     def next_img(self, event):
         """Displays the next image"""
@@ -123,7 +124,7 @@ class TestSession:
             self.display_img_index()
             f_tracking.write("\n")
 
-            if(self.show_preview):
+            if self.show_preview:
                 self.cur_img.preview()
             else:
                 self.cur_img.update_images()
@@ -178,6 +179,8 @@ class TestSession:
         return self.img_index >= (len(self.images) - 1)
 
     def finish_test_session(self):
+        """Called at the end of the test session to close all files and display a message"""
+
         self.cur_img.close_img()
 
         f_tracking.flush()
