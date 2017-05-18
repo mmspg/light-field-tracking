@@ -162,7 +162,7 @@ class LFImage:
             self.panels[(self.test_image_side.value + 1) % 2].configure(image=new_ref_img)
             self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
 
-            if(self.is_preview_running):
+            if not self.is_preview_running:
                 f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def load_images(self):
@@ -200,9 +200,10 @@ class LFImage:
             if index < len(preview_images_list)-1:
                 Timer(time_per_image, lambda: preview_inner(index+1, preview_images_list)).start()
             else:
+                # End the preview and display the base image
+                self.is_preview_running = False
                 self.next_img = self.base_img
                 self.cur_time = 0
-                self.is_preview_running = False
                 self.update_images()
 
         nb_preview_images = (end-start+1)**2
@@ -244,7 +245,7 @@ class LFImage:
             self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
             total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
-            if (self.is_preview_running):
+            if not self.is_preview_running:
                 f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
                                                                                     onscreen,
                                                                                     total_onscreen))

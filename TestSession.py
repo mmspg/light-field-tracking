@@ -19,6 +19,7 @@ class TestSession:
         self.possible_answers = possible_answers
         self.answers_description = answers_description
         self.show_preview = show_preview
+        self.test_image_side = test_image_side
         self.panels = None
         self.img_index = 0
         self.img_index_label = None
@@ -31,25 +32,35 @@ class TestSession:
         self.root.configure(background=BG_COLOR)
         self.root.geometry("{0}x{1}+0+0".format(self.root.winfo_screenwidth(), self.root.winfo_screenheight()))
 
-        self.setup_gui()
-
+        i = 0
         # Link the panels to each image
         for img in self.images:
-            img.set_panels(self.panels)
             if(preload_images):
+                i+=1
+                print("Loading image {}/{}...".format(i, len(self.images)))
                 img.load_images()
 
-            img.set_test_image_side(test_image_side)
+        if(show_preview):
+            self.start_btn = tk.Button(self.root, text="START", command=self.start_session, highlightbackground=BG_COLOR)
+            self.start_btn.pack(expand=True)
+        else:
+            self.start_session()
 
-        self.display_img_index()
+        self.root.mainloop()
+
+    def start_session(self):
+        self.setup_gui()
+
+        for img in self.images:
+            img.set_panels(self.panels)
+            img.set_test_image_side(self.test_image_side)
 
         # Start by either showing the preview or the normal interactive view
         if (self.show_preview):
+            self.start_btn.destroy()
             self.cur_img.preview()
         else:
             self.cur_img.update_images()
-
-        self.root.mainloop()
 
     def setup_gui(self):
         """Sets up the graphical user interface needed for the test session"""
@@ -96,6 +107,9 @@ class TestSession:
         buttons_frame.grid(row=5, column=0, columnspan=3)
 
         main_frame.place(anchor="c", relx=.50, rely=.50)
+
+        self.display_img_index()
+
 
     def next_img(self, event):
         """Displays the next image"""
