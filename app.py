@@ -7,7 +7,7 @@ from helper import Side
 ###############
 
 images = [None] * 2
-images[0] = LFImage("I01R3", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1)
+images[0] = LFImage("I01R1", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1)
 images[1] = LFImage("I02R3", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1)
 # images[2] = LFImage("I04R3", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1)
 # images[3] = LFImage("I09R3", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1)
@@ -21,4 +21,5 @@ answers_description = ["Very annoying",
                        "Perceptible, but not annoying",
                        "Imperceptible"]
 
-TestSession(images, question, answers, answers_description, show_preview=False, preload_images=False, test_image_side=Side.RIGHT)
+TestSession(images, question, answers, answers_description,
+            show_preview=True, preload_images=False, test_image_side=Side.RIGHT)

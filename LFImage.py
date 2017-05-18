@@ -39,7 +39,9 @@ class LFImage:
         self.unit = unit
 
         self.test_images = [[None for i in range(nb_img_x)] for j in range(nb_img_y)]
+        self.test_images_refocus = [None for i in range(nb_img_depth)]
         self.ref_images = [[None for i in range(nb_img_x)] for j in range(nb_img_y)]
+        self.ref_images_refocus = [None for i in range(nb_img_depth)]
 
         self.cur_img = None
         self.next_img = self.base_img
@@ -50,6 +52,7 @@ class LFImage:
         self.cur_time = 0
         self.panels = None
         self.test_image_side = None
+        self.is_preview_running = False
 
     def click(self, click_pos):
         """Stores the mouse position and the image diplayed at the time of the click.
@@ -68,25 +71,27 @@ class LFImage:
 
         :param move_pos: The current position of the mouse.
         """
-        diff_x = self.click_pos[0] - move_pos[0]
-        diff_y = self.click_pos[1] - move_pos[1]
+        if not self.is_preview_running:
+            diff_x = self.click_pos[0] - move_pos[0]
+            diff_y = self.click_pos[1] - move_pos[1]
 
-        img_diff_x = int(round(diff_x / float(self.unit)))
-        img_diff_y = int(round(diff_y / float(self.unit)))
+            img_diff_x = int(round(diff_x / float(self.unit)))
+            img_diff_y = int(round(diff_y / float(self.unit)))
 
-        self.next_img = SubapertureImage(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
-                                         clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1),
-                                         None)
+            self.next_img = SubapertureImage(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
+                                             clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1),
+                                             None)
 
-        self.update_images()
+            self.update_images()
 
     def refocus_to_depth(self, focus_depth):
         """Displays the image corresponding to the given focus depth.
         
         :param focus_depth: The depth to focus to image on.
         """
-        self.next_img = SubapertureImage(self.nb_img_x // 2, self.nb_img_y // 2, int(focus_depth))
-        self.update_images()
+        if not self.is_preview_running:
+            self.next_img = SubapertureImage(self.nb_img_x // 2, self.nb_img_y // 2, int(focus_depth))
+            self.update_images()
 
     def refocus_to_point(self, event):
         """Refocus the current image on the given point using the depth map
@@ -122,20 +127,26 @@ class LFImage:
 
             self.cur_img = self.next_img
 
+            # Because not all perspective views in the compressed image are available, we take the closest one
+            test_img_x = clamp(self.cur_img.x, self.test_img_padding, self.nb_img_x-self.test_img_padding-1)
+            test_img_y = clamp(self.cur_img.y, self.test_img_padding, self.nb_img_y-self.test_img_padding-1)
+
             if self.cur_img.focus_depth is None:
                 # Display a normal image
-                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
+                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, test_img_x, test_img_y, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
 
-                new_test_img = self.test_images[self.cur_img.x][self.cur_img.y]
+                new_test_img = self.test_images[test_img_x][test_img_y]
                 new_ref_img = self.ref_images[self.cur_img.x][self.cur_img.y]
 
             else:
                 # Display a refocused image
-                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
-                                                            self.cur_img.focus_depth, IMG_FORMAT)
+                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, test_img_x, test_img_y,
+                                                                 self.cur_img.focus_depth, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
-                                                            self.cur_img.focus_depth, IMG_FORMAT)
+                                                                self.cur_img.focus_depth, IMG_FORMAT)
+                new_test_img = self.test_images_refocus[self.cur_img.focus_depth]
+                new_ref_img = self.ref_images_refocus[self.cur_img.focus_depth]
 
             # Load the images if they were not already loaded
             if new_test_img is None:
@@ -151,10 +162,11 @@ class LFImage:
             self.panels[(self.test_image_side.value + 1) % 2].configure(image=new_ref_img)
             self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
 
-            f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
+            if(self.is_preview_running):
+                f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def load_images(self):
-        print("load_images")
+        # Load normal images
         for x in range(self.nb_img_x):
             for y in range(self.nb_img_y):
                 test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
@@ -166,23 +178,57 @@ class LFImage:
                    pad <= y and y < self.nb_img_y - pad):
                     self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
 
-    def preview(self):
-        """Display a preview of the image by going through a predefined subset of the sub-aperture images."""
+        # Load refocused images
+        for depth in range(self.nb_img_depth):
+            test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.base_img.x, self.base_img.y,
+                                                            depth, IMG_FORMAT)
+            ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.x, self.base_img.y,
+                                                            depth, IMG_FORMAT)
+            self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+            self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
 
-        def preview_inner(index):
-            img_name = '{}/007_{:03}.{}'.format(self.img_name, index, IMG_FORMAT)
-            new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
-            self.panels[0].configure(image=new_img)
-            self.panels[0].image = new_img
-            self.panels[1].configure(image=new_img)
-            self.panels[1].image = new_img
+    def preview(self, time_per_image=0.1, start=3, end=11):
+        """Display a preview of the LF image by going through a predefined subset of the sub-aperture images.
+           It shows the images in alternate scanner order, starting with the coordinate (start, start) and ending with (end, end)
+        """
 
-            if(index < 14):
-                Timer(0.5, lambda: preview_inner(index+1)).start()
+        def preview_inner(index, preview_images_list):
+            """Displays the images given by 'preview_images_list', starting at position 'index'"""
+            self.next_img = preview_images_list[index]
+            self.update_images()
+
+            if index < len(preview_images_list)-1:
+                Timer(time_per_image, lambda: preview_inner(index+1, preview_images_list)).start()
             else:
+                self.next_img = self.base_img
+                self.cur_time = 0
+                self.is_preview_running = False
                 self.update_images()
 
-        preview_inner(0)
+        nb_preview_images = (end-start+1)**2
+        # List of images ordered for the preview
+        preview_images_list = [None] * nb_preview_images
+
+        next_img = SubapertureImage(start, start, None)
+        index = 0
+        delta_x = 1
+
+        # Set the order of images for the preview
+        for y in range(start, end + 1):
+            next_img = SubapertureImage(next_img.x, y, None)
+            preview_images_list[index] = next_img
+            index += 1
+
+            for _ in range(start, end):
+                next_img = SubapertureImage(next_img.x+delta_x, next_img.y, None)
+                preview_images_list[index] = next_img
+                index += 1
+
+            delta_x = -delta_x
+
+        # Start the preview
+        self.is_preview_running = True
+        preview_inner(0, preview_images_list)
 
 
     def close_img(self):
@@ -198,11 +244,10 @@ class LFImage:
             self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
             total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
-            f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
+            if (self.is_preview_running):
+                f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
                                                                                     onscreen,
                                                                                     total_onscreen))
-
-
 
     def set_panels(self, panels):
         """Configure the LFImage to use the given panels for display.
