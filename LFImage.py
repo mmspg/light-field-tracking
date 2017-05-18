@@ -10,7 +10,7 @@ from helper import IMG_PATH_PREFIX, IMG_FORMAT, clamp, f_tracking
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, base_img=None, focus_depth=None, unit=20):
+    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, test_img_padding, base_img=None, focus_depth=None, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
@@ -28,16 +28,22 @@ class LFImage:
         self.nb_img_x = nb_img_x
         self.nb_img_y = nb_img_y
         self.nb_img_depth = nb_img_depth
+        self.test_img_padding = test_img_padding
 
         if base_img is None:
+            # Take the center perspective image
             self.base_img = SubapertureImage(nb_img_x // 2, nb_img_y // 2, focus_depth)
         else:
             self.base_img = base_img
 
+        self.unit = unit
+
+        self.test_images = [[None for i in range(nb_img_x)] for j in range(nb_img_y)]
+        self.ref_images = [[None for i in range(nb_img_x)] for j in range(nb_img_y)]
+
         self.cur_img = None
         self.next_img = self.base_img
         self.depth_map = Image.open("{}/depth_map/{}.{}".format(IMG_PATH_PREFIX, self.reference_img_name, IMG_FORMAT)).load()
-        self.unit = unit
         self.img_onscreen = [[datetime.timedelta(0) for x in range(nb_img_y)] for y in range(nb_img_x)]
         self.click_pos = (0, 0)
         self.prev_time = 0
@@ -117,18 +123,27 @@ class LFImage:
             self.cur_img = self.next_img
 
             if self.cur_img.focus_depth is None:
-                # Display a refocused image
+                # Display a normal image
                 test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
+
+                new_test_img = self.test_images[self.cur_img.x][self.cur_img.y]
+                new_ref_img = self.ref_images[self.cur_img.x][self.cur_img.y]
+
             else:
-                # Display a normal image
+                # Display a refocused image
                 test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
                                                             self.cur_img.focus_depth, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
                                                             self.cur_img.focus_depth, IMG_FORMAT)
 
-            new_test_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
-            new_ref_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+            # Load the images if they were not already loaded
+            if new_test_img is None:
+                new_test_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+                self.test_images[self.cur_img.x][self.cur_img.y] = new_test_img
+            if new_ref_img is None:
+                new_ref_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+                self.ref_images[self.cur_img.x][self.cur_img.y] = new_ref_img
 
             # Set the test and reference image on the correct side (left=0, right=1)
             self.panels[self.test_image_side.value].configure(image=new_test_img)
@@ -137,6 +152,19 @@ class LFImage:
             self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
 
             f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
+
+    def load_images(self):
+        print("load_images")
+        for x in range(self.nb_img_x):
+            for y in range(self.nb_img_y):
+                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
+                ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, x, y, IMG_FORMAT)
+                self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+
+                pad = self.test_img_padding
+                if(pad <= x and x < self.nb_img_x - pad and
+                   pad <= y and y < self.nb_img_y - pad):
+                    self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
 
     def preview(self):
         """Display a preview of the image by going through a predefined subset of the sub-aperture images."""
@@ -173,6 +201,8 @@ class LFImage:
             f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
                                                                                     onscreen,
                                                                                     total_onscreen))
+
+
 
     def set_panels(self, panels):
         """Configure the LFImage to use the given panels for display.
