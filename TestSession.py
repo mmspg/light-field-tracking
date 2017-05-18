@@ -6,7 +6,7 @@ from helper import BG_COLOR, f_tracking, f_answers
 class TestSession:
     """Represents a test session for the assessment of images."""
 
-    def __init__(self, images, question, possible_answers, answers_description, show_preview):
+    def __init__(self, images, question, possible_answers, answers_description, show_preview, test_image_side):
         """Initializes a test session.
         
         :param images: The light-field images to use for the test session.
@@ -36,6 +36,7 @@ class TestSession:
         # Link the panels to each image
         for img in self.images:
             img.set_panels(self.panels)
+            img.set_test_image_side(test_image_side)
 
         self.display_img_index()
 

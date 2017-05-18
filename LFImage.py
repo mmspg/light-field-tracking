@@ -4,7 +4,7 @@ from threading import Timer
 from PIL import Image, ImageTk
 
 from SubapertureImage import SubapertureImage
-from helper import IMG_PATH_PREFIX, clamp, f_tracking
+from helper import IMG_PATH_PREFIX, IMG_FORMAT, clamp, f_tracking
 
 
 class LFImage:
@@ -24,6 +24,7 @@ class LFImage:
         """
 
         self.img_name = img_name
+        self.reference_img_name = img_name.split("R")[0]+"R0"
         self.nb_img_x = nb_img_x
         self.nb_img_y = nb_img_y
         self.nb_img_depth = nb_img_depth
@@ -35,13 +36,14 @@ class LFImage:
 
         self.cur_img = None
         self.next_img = self.base_img
-        self.depth_map = Image.open("{}/depth_map/{}.png".format(IMG_PATH_PREFIX, self.img_name)).load()
+        self.depth_map = Image.open("{}/depth_map/{}.{}".format(IMG_PATH_PREFIX, self.reference_img_name, IMG_FORMAT)).load()
         self.unit = unit
         self.img_onscreen = [[datetime.timedelta(0) for x in range(nb_img_y)] for y in range(nb_img_x)]
         self.click_pos = (0, 0)
         self.prev_time = 0
         self.cur_time = 0
         self.panels = None
+        self.test_image_side = None
 
     def click(self, click_pos):
         """Stores the mouse position and the image diplayed at the time of the click.
@@ -115,24 +117,32 @@ class LFImage:
             self.cur_img = self.next_img
 
             if self.cur_img.focus_depth is None:
-                img_name = '{}/{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y)
+                # Display a refocused image
+                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
+                ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
             else:
-                img_name = '{}/{:03}_{:03}_{:03}.png'.format(self.img_name, self.cur_img.x, self.cur_img.y, self.cur_img.focus_depth)
+                # Display a normal image
+                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
+                                                            self.cur_img.focus_depth, IMG_FORMAT)
+                ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
+                                                            self.cur_img.focus_depth, IMG_FORMAT)
 
-            new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
+            new_test_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+            new_ref_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
 
-            self.panels[0].configure(image=new_img)
-            self.panels[0].image = new_img
-            self.panels[1].configure(image=new_img)
-            self.panels[1].image = new_img
+            # Set the test and reference image on the correct side (left=0, right=1)
+            self.panels[self.test_image_side.value].configure(image=new_test_img)
+            self.panels[self.test_image_side.value].image = new_test_img
+            self.panels[(self.test_image_side.value + 1) % 2].configure(image=new_ref_img)
+            self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
 
-            f_tracking.write("{}  start: {}  ".format(img_name, self.cur_time.strftime('%H:%M:%S.%f')))
+            f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def preview(self):
         """Display a preview of the image by going through a predefined subset of the sub-aperture images."""
 
         def preview_inner(index):
-            img_name = '{}/007_{:03}.png'.format(self.img_name, index)
+            img_name = '{}/007_{:03}.{}'.format(self.img_name, index, IMG_FORMAT)
             new_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + img_name))
             self.panels[0].configure(image=new_img)
             self.panels[0].image = new_img
@@ -170,3 +180,10 @@ class LFImage:
         :param panels: 
         """
         self.panels = panels
+
+    def set_test_image_side(self, side):
+        """Configure the LFImage to use the given panels for display.
+
+        :param panels: 
+        """
+        self.test_image_side = side
