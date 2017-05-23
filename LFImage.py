@@ -193,9 +193,11 @@ class LFImage:
             self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
             self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
 
-    def preview(self, time_per_image=0.1, start=3, end=11):
+    def preview(self, time_per_image=0.1, time_per_image_refocus=0.25, start=3, end=11):
         """Display a preview of the LF image by going through a predefined subset of the sub-aperture images.
-           It shows the images in alternate scanner order, starting with the coordinate (start, start) and ending with (end, end)
+           It first shows the perspective images in alternate scanner order, starting with the coordinate 
+           (start, start) and ending with (end, end). Then, it shows the refocused images by going from the foreground
+           to the background and back to the foreground.
         """
 
         def preview_inner(index, preview_images_list):
@@ -203,8 +205,9 @@ class LFImage:
             self.next_img = preview_images_list[index]
             self.update_images()
 
-            if index < len(preview_images_list)-1:
-                Timer(time_per_image, lambda: preview_inner(index+1, preview_images_list)).start()
+            if index+1 < len(preview_images_list):
+                timeout = time_per_image if (self.next_img.focus_depth is None) else time_per_image_refocus
+                Timer(timeout, lambda: preview_inner(index+1, preview_images_list)).start()
             else:
                 # End the preview and display the base image
                 self.is_preview_running = False
@@ -212,26 +215,28 @@ class LFImage:
                 self.cur_time = 0
                 self.update_images()
 
-        nb_preview_images = (end-start+1)**2
+
         # List of images ordered for the preview
-        preview_images_list = [None] * nb_preview_images
+        preview_images_list = []
 
         next_img = SubapertureImage(start, start, None)
-        index = 0
         delta_x = 1
 
         # Set the order of images for the preview
         for y in range(start, end + 1):
             next_img = SubapertureImage(next_img.x, y, None)
-            preview_images_list[index] = next_img
-            index += 1
+            preview_images_list.append(next_img)
 
             for _ in range(start, end):
                 next_img = SubapertureImage(next_img.x+delta_x, next_img.y, None)
-                preview_images_list[index] = next_img
-                index += 1
+                preview_images_list.append(next_img)
 
             delta_x = -delta_x
+
+        for d in range(0, 2*self.nb_img_depth -1):
+            depth = d if (d < self.nb_img_depth) else 2*self.nb_img_depth - 2 - d
+            next_img = SubapertureImage(self.base_img.x, self.base_img.y, depth)
+            preview_images_list.append(next_img)
 
         # Start the preview
         self.is_preview_running = True
