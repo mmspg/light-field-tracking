@@ -7,7 +7,7 @@ from helper import Helper
 ###############
 
 images = []
-images.append(LFImage("I01R1", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1))
+images.append(LFImage("I01R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3), test_img_padding=1))
 #images.append(LFImage("I02R2", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1))
 #images.append(LFImage("I04R3", nb_img_x=15, nb_img_y=15, nb_img_depth=11, test_img_padding=1))
 

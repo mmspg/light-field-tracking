@@ -10,7 +10,7 @@ from helper import IMG_PATH_PREFIX, IMG_FORMAT, f_tracking, Helper
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, test_img_padding, base_img=None, focus_depth=None, unit=20):
+    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, top_left, test_img_padding, base_img=None, focus_depth=None, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
@@ -28,25 +28,28 @@ class LFImage:
         self.nb_img_x = nb_img_x
         self.nb_img_y = nb_img_y
         self.nb_img_depth = nb_img_depth
+        self.top_left  = top_left
         self.test_img_padding = test_img_padding
 
         if base_img is None:
             # Take the center perspective image
-            self.base_img = SubapertureImage(nb_img_x // 2, nb_img_y // 2, focus_depth)
+            self.base_img = SubapertureImage(top_left[0] + (nb_img_x // 2),
+                                             top_left[1] + (nb_img_y // 2),
+                                             focus_depth)
         else:
             self.base_img = base_img
 
         self.unit = unit
 
-        self.test_images = [[None for i in range(nb_img_x)] for j in range(nb_img_y)]
+        self.test_images = [[None for i in range(top_left[0] + nb_img_x)] for j in range(top_left[1] + nb_img_y)]
         self.test_images_refocus = [None for i in range(nb_img_depth)]
-        self.ref_images = [[None for i in range(nb_img_x)] for j in range(nb_img_y)]
+        self.ref_images = [[None for i in range(top_left[0] + nb_img_x)] for j in range(top_left[1] + nb_img_y)]
         self.ref_images_refocus = [None for i in range(nb_img_depth)]
 
         self.cur_img = None
         self.next_img = self.base_img
         self.depth_map = Image.open("{}/depth_map/{}.{}".format(IMG_PATH_PREFIX, self.reference_img_name, IMG_FORMAT)).load()
-        self.img_onscreen = [[datetime.timedelta(0) for x in range(nb_img_y)] for y in range(nb_img_x)]
+        self.img_onscreen = [[datetime.timedelta(0) for x in range(top_left[0] + nb_img_x)] for y in range(top_left[1] + nb_img_y)]
         self.click_pos = (0, 0)
         self.prev_time = 0
         self.cur_time = 0
@@ -78,9 +81,13 @@ class LFImage:
             img_diff_x = int(round(diff_x / float(self.unit)))
             img_diff_y = int(round(diff_y / float(self.unit)))
 
-            self.next_img = SubapertureImage(Helper.clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
-                                             Helper.clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1),
-                                             None)
+            next_img_x = Helper.clamp(self.base_img.x + img_diff_x,
+                                      self.top_left[0],
+                                      self.top_left[0] + self.nb_img_x - 1)
+            next_img_y = Helper.clamp(self.base_img.y + img_diff_y,
+                                      self.top_left[1],
+                                      self.top_left[1] + self.nb_img_y - 1)
+            self.next_img = SubapertureImage(next_img_x, next_img_y, None)
 
             self.update_images()
             self.set_focus_slider_value(0)
@@ -173,8 +180,8 @@ class LFImage:
 
     def load_images(self):
         # Load normal images
-        for x in range(self.nb_img_x):
-            for y in range(self.nb_img_y):
+        for x in range(self.top_left[0], self.top_left[0] + self.nb_img_x):
+            for y in range(self.top_left[1], self.top_left[1] + self.nb_img_y):
                 test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, x, y, IMG_FORMAT)
                 self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
