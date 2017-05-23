@@ -10,7 +10,7 @@ from helper import IMG_PATH_PREFIX, IMG_FORMAT, f_tracking, Helper
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, top_left, test_img_padding, base_img=None, focus_depth=None, unit=20):
+    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, top_left, base_img=None, focus_depth=None, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
@@ -29,7 +29,6 @@ class LFImage:
         self.nb_img_y = nb_img_y
         self.nb_img_depth = nb_img_depth
         self.top_left  = top_left
-        self.test_img_padding = test_img_padding
 
         if base_img is None:
             # Take the center perspective image
@@ -140,21 +139,17 @@ class LFImage:
 
             self.cur_img = self.next_img
 
-            # Because not all perspective views in the compressed image are available, we take the closest one
-            test_img_x = Helper.clamp(self.cur_img.x, self.test_img_padding, self.nb_img_x-self.test_img_padding-1)
-            test_img_y = Helper.clamp(self.cur_img.y, self.test_img_padding, self.nb_img_y-self.test_img_padding-1)
-
             if self.cur_img.focus_depth is None:
                 # Display a normal image
-                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, test_img_x, test_img_y, IMG_FORMAT)
+                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
 
-                new_test_img = self.test_images[test_img_x][test_img_y]
+                new_test_img = self.test_images[self.cur_img.x][self.cur_img.y]
                 new_ref_img = self.ref_images[self.cur_img.x][self.cur_img.y]
 
             else:
                 # Display a refocused image
-                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, test_img_x, test_img_y,
+                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
                                                                  self.cur_img.focus_depth, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
                                                                 self.cur_img.focus_depth, IMG_FORMAT)
@@ -185,11 +180,7 @@ class LFImage:
                 test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, x, y, IMG_FORMAT)
                 self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
-
-                pad = self.test_img_padding
-                if(pad <= x and x < self.nb_img_x - pad and
-                   pad <= y and y < self.nb_img_y - pad):
-                    self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+                self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
 
         # Load refocused images
         for depth in range(self.nb_img_depth):
