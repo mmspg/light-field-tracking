@@ -12,7 +12,7 @@ if not os.path.exists(OUTPUT_PATH_PREFIX):
     os.makedirs(OUTPUT_PATH_PREFIX)
 
 # Open the output files
-timestamp = datetime.datetime.now().strftime('%Y%m%d-%Hh%M')
+timestamp = datetime.datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
 f_tracking = open(OUTPUT_PATH_PREFIX + timestamp + '-tracking.txt', 'w')
 f_answers = open(OUTPUT_PATH_PREFIX + timestamp + '-answers.txt', 'w')
 
