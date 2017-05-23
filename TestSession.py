@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from helper import BG_COLOR, f_tracking, f_answers
+from helper import BG_COLOR, f_tracking, f_answers, Helper
 
 
 class TestSession:
@@ -87,6 +87,17 @@ class TestSession:
         self.panels[1].bind('<B1-Motion>', self.move)
         self.panels[1].bind('<Double-Button-1>', self.refocus_to_point)
 
+        # Scale (a.k.a. slider) to perform refocusing
+        focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
+        self.focus_slider = tk.Scale(focus_frame, from_=self.cur_img.nb_img_depth - 1, to=0, command=self.slider_refocus_to_depth,
+                                     showvalue=0, length=200, background=BG_COLOR)
+        self.focus_slider.grid(row=1, column=0)
+        tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)
+        tk.Label(focus_frame, text="Near", background=BG_COLOR).grid(row=2, column=0)
+        focus_frame.grid(row=2, column=1)
+        Helper.is_focus_slider_enabled = False
+        Helper.focus_slider = self.focus_slider
+
         question_label = tk.Label(main_frame, text=self.question, background=BG_COLOR, pady=30)
         question_label.grid(row=3, column=0, columnspan=3)
 
@@ -154,12 +165,15 @@ class TestSession:
         self.cur_img.move((event.x, event.y))
         return
 
-    def refocus_to_depth(self, focus_depth):
+    def slider_refocus_to_depth(self, focus_depth):
         """Displays the image corresponding to the given focus depth.
         
         :param focus_depth: The depth to focus to image on.
         """
-        self.cur_img.refocus_to_depth(focus_depth)
+        if Helper.is_focus_slider_enabled:
+            self.cur_img.refocus_to_depth(focus_depth)
+        else:
+            Helper.is_focus_slider_enabled = True
 
     def refocus_to_point(self, event):
         """Refocus the current image on the given point using the depth map

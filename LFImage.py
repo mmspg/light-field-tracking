@@ -4,7 +4,7 @@ from threading import Timer
 from PIL import Image, ImageTk
 
 from SubapertureImage import SubapertureImage
-from helper import IMG_PATH_PREFIX, IMG_FORMAT, clamp, f_tracking
+from helper import IMG_PATH_PREFIX, IMG_FORMAT, f_tracking, Helper
 
 
 class LFImage:
@@ -78,11 +78,12 @@ class LFImage:
             img_diff_x = int(round(diff_x / float(self.unit)))
             img_diff_y = int(round(diff_y / float(self.unit)))
 
-            self.next_img = SubapertureImage(clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
-                                             clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1),
+            self.next_img = SubapertureImage(Helper.clamp(self.base_img.x + img_diff_x, 0, self.nb_img_x - 1),
+                                             Helper.clamp(self.base_img.y + img_diff_y, 0, self.nb_img_y - 1),
                                              None)
 
             self.update_images()
+            self.set_focus_slider_value(0)
 
     def refocus_to_depth(self, focus_depth):
         """Displays the image corresponding to the given focus depth.
@@ -92,6 +93,8 @@ class LFImage:
         if not self.is_preview_running:
             self.next_img = SubapertureImage(self.nb_img_x // 2, self.nb_img_y // 2, int(focus_depth))
             self.update_images()
+
+            self.set_focus_slider_value(focus_depth)
 
     def refocus_to_point(self, event):
         """Refocus the current image on the given point using the depth map
@@ -118,6 +121,9 @@ class LFImage:
         else:
             self.refocus_to_depth(depth)
 
+    def set_focus_slider_value(self, value):
+        Helper.is_focus_slider_enabled = False
+        Helper.focus_slider.set(value)
 
     def update_images(self):
         """Updates the image displayed according to the next_img attribute"""
@@ -128,8 +134,8 @@ class LFImage:
             self.cur_img = self.next_img
 
             # Because not all perspective views in the compressed image are available, we take the closest one
-            test_img_x = clamp(self.cur_img.x, self.test_img_padding, self.nb_img_x-self.test_img_padding-1)
-            test_img_y = clamp(self.cur_img.y, self.test_img_padding, self.nb_img_y-self.test_img_padding-1)
+            test_img_x = Helper.clamp(self.cur_img.x, self.test_img_padding, self.nb_img_x-self.test_img_padding-1)
+            test_img_y = Helper.clamp(self.cur_img.y, self.test_img_padding, self.nb_img_y-self.test_img_padding-1)
 
             if self.cur_img.focus_depth is None:
                 # Display a normal image

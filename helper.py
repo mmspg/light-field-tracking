@@ -17,13 +17,17 @@ f_tracking = open(OUTPUT_PATH_PREFIX + timestamp + '-tracking.txt', 'w')
 f_answers = open(OUTPUT_PATH_PREFIX + timestamp + '-answers.txt', 'w')
 
 
-class Side(Enum):
-    LEFT = 0
-    RIGHT = 1
+class Helper:
+    focus_slider = None
+    is_focus_slider_enabled = None
 
+    class Side(Enum):
+        LEFT = 0
+        RIGHT = 1
 
-def clamp(x, minimum, maximum):
-    """Clamps the value x between a minimum and a maximum."""
+    def clamp(x, minimum, maximum):
+        """Clamps the value x between a minimum and a maximum."""
 
-    assert (minimum <= maximum)
-    return max(minimum, min(maximum, x))
+        assert (minimum <= maximum)
+        return max(minimum, min(maximum, x))
+
