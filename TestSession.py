@@ -1,7 +1,7 @@
 import tkinter as tk
 import threading
 
-from helper import BG_COLOR, f_tracking, f_answers, Helper
+from helper import BG_COLOR, NB_IMAGES_PRELOADED, f_tracking, f_answers, Helper
 
 
 class TestSession:
@@ -34,6 +34,12 @@ class TestSession:
         self.root.configure(background=BG_COLOR)
         self.root.geometry("{0}x{1}+0+0".format(self.root.winfo_screenwidth(), self.root.winfo_screenheight()))
 
+        if self.preload_images:
+            # Loads the first few images asynchronously
+            for i in range(NB_IMAGES_PRELOADED + 1):
+                print("Loading image {}/{}...".format(i+1, len(self.images)))
+                self.images[i].load_images()
+
         if show_preview:
             self.start_btn = tk.Button(self.root, text="START", command=self.start_session,
                                        highlightbackground=BG_COLOR)
@@ -46,14 +52,13 @@ class TestSession:
     def start_session(self):
         self.setup_gui()
 
-        # Loads the first image
-        if self.preload_images:
-            print("Loading image {}/{}...".format(self.img_index + 1, len(self.images)))
-            self.images[0].load_images()
-
         for img in self.images:
             img.set_panels(self.panels)
             img.set_test_image_side(self.test_image_side)
+
+        if not self.cur_img.is_loaded:
+            Helper.fullscreen_msg.config(text="Loading image...")
+            Helper.fullscreen_msg.pack(fill="both", expand="true")
 
         # Start by either showing the preview or the normal interactive view
         if self.show_preview:
@@ -130,15 +135,20 @@ class TestSession:
 
         if not self.is_last_image():
             self.cur_img.close_img()
+            self.cur_img.clear_memory()
             self.cur_img.cur_time = 0
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
 
-            if self.preload_images:
-                print("Loading image {}/{}...".format(self.img_index + 1, len(self.images)))
+            if not self.cur_img.is_loaded:
                 Helper.fullscreen_msg.config(text="Loading image...")
                 Helper.fullscreen_msg.pack(fill="both", expand="true")
-                self.cur_img.load_images()
+
+            if self.preload_images:
+                # Preload the following image(s) already
+                if self.img_index + NB_IMAGES_PRELOADED < (len(self.images) - 1):
+                    print("Loading image {}/{}...".format(self.img_index + NB_IMAGES_PRELOADED + 1, len(self.images)))
+                    self.images[self.img_index + NB_IMAGES_PRELOADED].load_images()
 
             self.display_img_index()
             f_tracking.write("\n")

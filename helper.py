@@ -7,6 +7,9 @@ IMG_PATH_PREFIX = "img/"
 IMG_FORMAT = "png"
 OUTPUT_PATH_PREFIX = "output/"
 
+# Number of images following the current image that are loaded in advance
+NB_IMAGES_PRELOADED = 2
+
 # Create an output folder if it doesn't already exist
 if not os.path.exists(OUTPUT_PATH_PREFIX):
     os.makedirs(OUTPUT_PATH_PREFIX)

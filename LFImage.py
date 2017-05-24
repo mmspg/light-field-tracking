@@ -56,6 +56,7 @@ class LFImage:
         self.panels = None
         self.test_image_side = None
         self.is_preview_running = False
+        self.is_loaded = False
 
     def click(self, click_pos):
         """Stores the mouse position and the image diplayed at the time of the click.
@@ -176,9 +177,6 @@ class LFImage:
 
     def load_images(self):
         def callback():
-            # Display loading message
-            Helper.fullscreen_msg.config(text="Loading image...")
-            Helper.fullscreen_msg.pack(fill="both", expand="true")
 
             # Load normal images
             for x in range(self.top_left[0], self.top_left[0] + self.nb_img_x):
@@ -197,6 +195,7 @@ class LFImage:
                 self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
                 self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
 
+            self.is_loaded = True
             # Hide loading message
             Helper.fullscreen_msg.pack_forget()
 
@@ -270,6 +269,13 @@ class LFImage:
                 f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
                                                                                     onscreen,
                                                                                     total_onscreen))
+
+    def clear_memory(self):
+        self.ref_images = None
+        self.ref_images_refocus = None
+        self.test_images = None
+        self.test_images_refocus = None
+        self.is_loaded = False
 
     def set_panels(self, panels):
         """Configure the LFImage to use the given panels for display.
