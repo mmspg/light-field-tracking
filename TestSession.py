@@ -1,4 +1,5 @@
 import tkinter as tk
+import threading
 
 from helper import BG_COLOR, f_tracking, f_answers, Helper
 
@@ -19,6 +20,7 @@ class TestSession:
         self.possible_answers = possible_answers
         self.answers_description = answers_description
         self.show_preview = show_preview
+        self.preload_images = preload_images
         self.test_image_side = test_image_side
         self.panels = None
         self.img_index = 0
@@ -32,14 +34,6 @@ class TestSession:
         self.root.configure(background=BG_COLOR)
         self.root.geometry("{0}x{1}+0+0".format(self.root.winfo_screenwidth(), self.root.winfo_screenheight()))
 
-        i = 0
-        # Link the panels to each image
-        for img in self.images:
-            if preload_images:
-                i += 1
-                print("Loading image {}/{}...".format(i, len(self.images)))
-                img.load_images()
-
         if show_preview:
             self.start_btn = tk.Button(self.root, text="START", command=self.start_session,
                                        highlightbackground=BG_COLOR)
@@ -51,6 +45,11 @@ class TestSession:
 
     def start_session(self):
         self.setup_gui()
+
+        # Loads the first image
+        if self.preload_images:
+            print("Loading image {}/{}...".format(self.img_index + 1, len(self.images)))
+            self.images[0].load_images()
 
         for img in self.images:
             img.set_panels(self.panels)
@@ -123,7 +122,10 @@ class TestSession:
 
         self.display_img_index()
 
-    def next_img(self, event):
+        Helper.fullscreen_msg = tk.Label(self.root, text="", background=BG_COLOR)
+        Helper.fullscreen_msg.pack_forget()
+
+    def next_img(self):
         """Displays the next image"""
 
         if not self.is_last_image():
@@ -131,6 +133,12 @@ class TestSession:
             self.cur_img.cur_time = 0
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
+
+            if self.preload_images:
+                print("Loading image {}/{}...".format(self.img_index + 1, len(self.images)))
+                Helper.fullscreen_msg.config(text="Loading image...")
+                Helper.fullscreen_msg.pack(fill="both", expand="true")
+                self.cur_img.load_images()
 
             self.display_img_index()
             f_tracking.write("\n")
@@ -151,7 +159,7 @@ class TestSession:
         if self.is_last_image():
             self.finish_test_session()
         else:
-            self.next_img(None)
+            self.next_img()
 
     def click(self, event):
         """Method  called whenever an image is clicked on."""
@@ -202,5 +210,5 @@ class TestSession:
         f_answers.flush()
         f_answers.close()
 
-        end_msg = tk.Label(self.root, text="FINISHED", background=BG_COLOR)
-        end_msg.pack(fill="both", expand="true")
+        Helper.fullscreen_msg.config(text="FINISHED")
+        Helper.fullscreen_msg.pack(fill="both", expand="true")

@@ -21,6 +21,8 @@ class Helper:
     focus_slider = None
     is_focus_slider_enabled = None
 
+    fullscreen_msg = None
+
     class Side(Enum):
         LEFT = 0
         RIGHT = 1

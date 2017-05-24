@@ -1,5 +1,6 @@
 import datetime
 from threading import Timer
+import threading
 
 from PIL import Image, ImageTk
 
@@ -174,22 +175,33 @@ class LFImage:
                 f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def load_images(self):
-        # Load normal images
-        for x in range(self.top_left[0], self.top_left[0] + self.nb_img_x):
-            for y in range(self.top_left[1], self.top_left[1] + self.nb_img_y):
-                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
-                ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, x, y, IMG_FORMAT)
-                self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
-                self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+        def callback():
+            # Display loading message
+            Helper.fullscreen_msg.config(text="Loading image...")
+            Helper.fullscreen_msg.pack(fill="both", expand="true")
 
-        # Load refocused images
-        for depth in range(self.nb_img_depth):
-            test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.base_img.x, self.base_img.y,
-                                                            depth, IMG_FORMAT)
-            ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.x, self.base_img.y,
-                                                            depth, IMG_FORMAT)
-            self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
-            self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+            # Load normal images
+            for x in range(self.top_left[0], self.top_left[0] + self.nb_img_x):
+                for y in range(self.top_left[1], self.top_left[1] + self.nb_img_y):
+                    test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
+                    ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, x, y, IMG_FORMAT)
+                    self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+                    self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+
+            # Load refocused images
+            for depth in range(self.nb_img_depth):
+                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.base_img.x, self.base_img.y,
+                                                                depth, IMG_FORMAT)
+                ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.x, self.base_img.y,
+                                                                depth, IMG_FORMAT)
+                self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+                self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+
+            # Hide loading message
+            Helper.fullscreen_msg.pack_forget()
+
+        t = threading.Thread(target=callback)
+        t.start()
 
     def preview(self, time_per_image=0.1, time_per_image_refocus=0.25, start=3, end=11):
         """Display a preview of the LF image by going through a predefined subset of the sub-aperture images.
