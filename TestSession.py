@@ -56,7 +56,7 @@ class TestSession:
             img.set_panels(self.panels)
             img.set_test_image_side(self.test_image_side)
 
-        if not self.cur_img.is_loaded:
+        if self.preload_images and not self.cur_img.is_loaded:
             Helper.fullscreen_msg.config(text="Loading image...")
             Helper.fullscreen_msg.pack(fill="both", expand="true")
 
@@ -140,18 +140,24 @@ class TestSession:
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
 
-            if not self.cur_img.is_loaded:
-                Helper.fullscreen_msg.config(text="Loading image...")
-                Helper.fullscreen_msg.pack(fill="both", expand="true")
 
             if self.preload_images:
-                # Preload the following image(s) already
-                if self.img_index + NB_IMAGES_PRELOADED < (len(self.images) - 1):
+                # Display loading message is image is not loaded yet
+                if not self.cur_img.is_loaded:
+                    Helper.fullscreen_msg.config(text="Loading image...")
+                    Helper.fullscreen_msg.pack(fill="both", expand="true")
+
+                # Preload the following image already
+                if self.img_index + NB_IMAGES_PRELOADED < len(self.images):
                     print("Loading image {}/{}...".format(self.img_index + NB_IMAGES_PRELOADED + 1, len(self.images)))
                     self.images[self.img_index + NB_IMAGES_PRELOADED].load_images()
 
             self.display_img_index()
             f_tracking.write("\n")
+
+            # Reset slider value to 0
+            Helper.is_focus_slider_enabled = False
+            Helper.focus_slider.set(0)
 
             if self.show_preview:
                 self.cur_img.preview()
@@ -214,6 +220,7 @@ class TestSession:
         """Called at the end of the test session to close all files and display a message"""
 
         self.cur_img.close_img()
+        self.cur_img.clear_memory()
 
         f_tracking.flush()
         f_tracking.close()

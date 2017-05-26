@@ -137,26 +137,22 @@ class LFImage:
         """Updates the image displayed according to the next_img attribute"""
 
         if self.next_img != self.cur_img:
-            self.close_img()
+            if not self.is_preview_running:
+                self.close_img()
 
             self.cur_img = self.next_img
 
             if self.cur_img.focus_depth is None:
                 # Display a normal image
-                test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
-                ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
-
                 new_test_img = self.test_images[self.cur_img.x][self.cur_img.y]
                 new_ref_img = self.ref_images[self.cur_img.x][self.cur_img.y]
 
             else:
                 # Display a refocused image
-                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
-                                                                 self.cur_img.focus_depth, IMG_FORMAT)
-                ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
-                                                                self.cur_img.focus_depth, IMG_FORMAT)
                 new_test_img = self.test_images_refocus[self.cur_img.focus_depth]
                 new_ref_img = self.ref_images_refocus[self.cur_img.focus_depth]
+
+            test_img_name, ref_img_name = self.get_cur_img_names()
 
             # Load the images if they were not already loaded
             if new_test_img is None:
@@ -171,9 +167,6 @@ class LFImage:
             self.panels[self.test_image_side.value].image = new_test_img
             self.panels[(self.test_image_side.value + 1) % 2].configure(image=new_ref_img)
             self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
-
-            if not self.is_preview_running:
-                f_tracking.write("{}  start: {}  ".format(test_img_name, self.cur_time.strftime('%H:%M:%S.%f')))
 
     def load_images(self):
         def callback():
@@ -197,7 +190,8 @@ class LFImage:
 
             self.is_loaded = True
             # Hide loading message
-            Helper.fullscreen_msg.pack_forget()
+            if Helper.fullscreen_msg != None:
+                Helper.fullscreen_msg.pack_forget()
 
         t = threading.Thread(target=callback)
         t.start()
@@ -221,7 +215,7 @@ class LFImage:
                 # End the preview and display the base image
                 self.is_preview_running = False
                 self.next_img = self.base_img
-                self.cur_time = 0
+                #self.cur_time = 0
                 self.update_images()
 
 
@@ -265,12 +259,38 @@ class LFImage:
             self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
             total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
-            if not self.is_preview_running:
-                f_tracking.write("end: {}  on-screen: {}  total on-screen: {}\n".format(self.cur_time.strftime('%H:%M:%S.%f'),
-                                                                                    onscreen,
-                                                                                    total_onscreen))
+            test_img_name, _ = self.get_cur_img_names()
+
+            to_write = "{}  start: {}  end: {}  on-screen: {}  total on-screen: {}\n".format(
+                test_img_name,
+                self.prev_time.strftime('%H:%M:%S.%f'),
+                self.cur_time.strftime('%H:%M:%S.%f'),
+                onscreen,
+                total_onscreen
+            )
+
+            f_tracking.write(to_write)
+
+    def get_cur_img_names(self):
+        """Returns a tuple containing the name of the current test image and of the current reference image"""
+
+        if self.cur_img.focus_depth is None:
+            # Normal image
+            test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
+            ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
+
+        else:
+            # Refocused image
+            test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
+                                                             self.cur_img.focus_depth, IMG_FORMAT)
+            ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
+                                                            self.cur_img.focus_depth, IMG_FORMAT)
+
+        return (test_img_name, ref_img_name)
 
     def clear_memory(self):
+        """Dereference the arrays of images loaded so that they are cleared by the garbage collector"""
+
         self.ref_images = None
         self.ref_images_refocus = None
         self.test_images = None
