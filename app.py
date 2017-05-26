@@ -25,7 +25,7 @@ images.append(LFImage("I10R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left
 # images.append(LFImage("I09R3", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
 # images.append(LFImage("I10R3", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
 
-question = "How would you rate the impairment of the test image (left) compared to the reference image (right)?"
+question = "How would you rate the impairment of the test image compared to the reference image?"
 answers = [1, 2, 3, 4, 5]
 answers_description = ["Very annoying",
                        "Annoying",
@@ -34,4 +34,4 @@ answers_description = ["Very annoying",
                        "Imperceptible"]
 
 TestSession(images, question, answers, answers_description,
-            show_preview=True, preload_images=True, test_image_side=Helper.Side.RIGHT)
+            show_preview=True, preload_images=True, test_image_side=Helper.Side.LEFT)

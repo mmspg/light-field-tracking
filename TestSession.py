@@ -76,8 +76,10 @@ class TestSession:
         self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
         self.img_index_label.grid(row=0, column=0, columnspan=3)
 
-        tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=1, column=0, pady=5)
-        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=1, column=2)
+        test_col = 2*self.test_image_side.value
+        ref_col = 2-test_col
+        tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=1, column=test_col, pady=5)
+        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=1, column=ref_col, pady=5)
 
         # Panels where the two images are displayed
         self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
