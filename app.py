@@ -2,16 +2,16 @@ from LFImage import LFImage
 from TestSession import TestSession
 from helper import Helper
 
-###############
-## MAIN CODE ##
-###############
+#---------------
+#-- MAIN CODE --
+#---------------
 
 images = []
-images.append(LFImage("I01R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
-images.append(LFImage("I02R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
-images.append(LFImage("I04R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
-images.append(LFImage("I09R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
-images.append(LFImage("I10R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
+images.append(LFImage("I01R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
+images.append(LFImage("I02R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
+images.append(LFImage("I04R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
+images.append(LFImage("I09R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
+images.append(LFImage("I10R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
 
 # images.append(LFImage("I01R2", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
 # images.append(LFImage("I02R2", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
@@ -34,4 +34,4 @@ answers_description = ["Very annoying",
                        "Imperceptible"]
 
 TestSession(images, question, answers, answers_description,
-            show_preview=True, preload_images=True, test_image_side=Helper.Side.LEFT)
+            show_preview=False, preload_images=True, test_image_side=Helper.Side.LEFT)

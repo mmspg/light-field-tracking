@@ -1,20 +1,24 @@
 import tkinter as tk
-import threading
 
 from helper import BG_COLOR, NB_IMAGES_PRELOADED, f_tracking, f_answers, Helper
 
 
 class TestSession:
-    """Represents a test session for the assessment of images."""
+    """Represents a test session for the assessment of light field images."""
 
     def __init__(self, images, question, possible_answers, answers_description, show_preview, preload_images, test_image_side):
         """Initializes a test session.
-        
+
         :param images: The light-field images to use for the test session.
         :param question: The question that should be asked.
         :param possible_answers: The possible answers to the question.
-        :param answers_description: A short text describing the possible answers to the question.
+        :param answers_description: The descriptions corresponding to each of the answers in possible_answers.
+        :param show_preview: if True, show the preview animation for each image
+        :param preload_images: if True, preloads the images for a smoother experience (recommended)
+        :param test_image_side: Side on which the test image should be displayed.
+                                This should be either Helper.Side.LEFT or Helper.Side.Right
         """
+
         self.images = images
         self.question = question
         self.possible_answers = possible_answers
@@ -50,6 +54,8 @@ class TestSession:
         self.root.mainloop()
 
     def start_session(self):
+        """Starts the test session"""
+
         self.setup_gui()
 
         for img in self.images:
@@ -117,7 +123,7 @@ class TestSession:
                             width=btn_width, highlightbackground=BG_COLOR)
             btn.grid(row=0, column=i, padx=12)
             tk.Label(buttons_frame, text=self.answers_description[i], width=btn_width, wraplength=btn_width * 10,
-                     background=BG_COLOR).grid(row=1, column=(i))
+                     background=BG_COLOR).grid(row=1, column=i)
 
             # We can answer with the keys 1-9 if the number of answers is smaller than 10
             if len(self.possible_answers) <= 9:
@@ -141,7 +147,6 @@ class TestSession:
             self.cur_img.cur_time = 0
             self.img_index += 1
             self.cur_img = self.images[self.img_index]
-
 
             if self.preload_images:
                 # Display loading message is image is not loaded yet
@@ -172,7 +177,7 @@ class TestSession:
         :param answ: The answer.
         """
         self.answers[self.img_index] = answ
-        f_answers.write("{:30} : {}\n".format(self.cur_img.img_name, answ))
+        f_answers.write("{:30}: {}\n".format(self.cur_img.img_name, answ))
 
         if self.is_last_image():
             self.finish_test_session()

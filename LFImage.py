@@ -5,7 +5,7 @@ import threading
 from PIL import Image, ImageTk
 
 from SubapertureImage import SubapertureImage
-from helper import IMG_PATH_PREFIX, IMG_FORMAT, f_tracking, Helper
+from helper import IMG_PATH_PREFIX, IMG_FORMAT, f_tracking, clamp, Helper
 
 
 class LFImage:
@@ -29,7 +29,7 @@ class LFImage:
         self.nb_img_x = nb_img_x
         self.nb_img_y = nb_img_y
         self.nb_img_depth = nb_img_depth
-        self.top_left  = top_left
+        self.top_left = top_left
 
         if base_img is None:
             # Take the center perspective image
@@ -41,15 +41,15 @@ class LFImage:
 
         self.unit = unit
 
-        self.test_images = [[None for i in range(top_left[0] + nb_img_x)] for j in range(top_left[1] + nb_img_y)]
-        self.test_images_refocus = [None for i in range(nb_img_depth)]
-        self.ref_images = [[None for i in range(top_left[0] + nb_img_x)] for j in range(top_left[1] + nb_img_y)]
-        self.ref_images_refocus = [None for i in range(nb_img_depth)]
+        self.test_images = [[None for _ in range(top_left[0] + nb_img_x)] for _ in range(top_left[1] + nb_img_y)]
+        self.test_images_refocus = [None for _ in range(nb_img_depth)]
+        self.ref_images = [[None for _ in range(top_left[0] + nb_img_x)] for _ in range(top_left[1] + nb_img_y)]
+        self.ref_images_refocus = [None for _ in range(nb_img_depth)]
 
         self.cur_img = None
         self.next_img = self.base_img
         self.depth_map = Image.open("{}/depth_map/{}.{}".format(IMG_PATH_PREFIX, self.reference_img_name, IMG_FORMAT)).load()
-        self.img_onscreen = [[datetime.timedelta(0) for x in range(top_left[0] + nb_img_x)] for y in range(top_left[1] + nb_img_y)]
+        self.img_onscreen = [[datetime.timedelta(0) for _ in range(top_left[0] + nb_img_x)] for _ in range(top_left[1] + nb_img_y)]
         self.click_pos = (0, 0)
         self.prev_time = 0
         self.cur_time = 0
@@ -82,10 +82,10 @@ class LFImage:
             img_diff_x = int(round(diff_x / float(self.unit)))
             img_diff_y = int(round(diff_y / float(self.unit)))
 
-            next_img_x = Helper.clamp(self.base_img.x + img_diff_x,
+            next_img_x = clamp(self.base_img.x + img_diff_x,
                                       self.top_left[0],
                                       self.top_left[0] + self.nb_img_x - 1)
-            next_img_y = Helper.clamp(self.base_img.y + img_diff_y,
+            next_img_y = clamp(self.base_img.y + img_diff_y,
                                       self.top_left[1],
                                       self.top_left[1] + self.nb_img_y - 1)
             self.next_img = SubapertureImage(next_img_x, next_img_y, None)
@@ -257,16 +257,15 @@ class LFImage:
         if self.prev_time != 0:
             onscreen = self.cur_time - self.prev_time
             self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
-            total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
+            #total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
             test_img_name, _ = self.get_cur_img_names()
 
-            to_write = "{}  start: {}  end: {}  on-screen: {}  total on-screen: {}\n".format(
+            to_write = "{}  start: {}  end: {}  on-screen: {}\n".format(
                 test_img_name,
                 self.prev_time.strftime('%H:%M:%S.%f'),
                 self.cur_time.strftime('%H:%M:%S.%f'),
-                onscreen,
-                total_onscreen
+                onscreen
             )
 
             f_tracking.write(to_write)

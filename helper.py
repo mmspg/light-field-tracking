@@ -19,6 +19,11 @@ timestamp = datetime.datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
 f_tracking = open(OUTPUT_PATH_PREFIX + timestamp + '-tracking.txt', 'w')
 f_answers = open(OUTPUT_PATH_PREFIX + timestamp + '-answers.txt', 'w')
 
+def clamp(x, minimum, maximum):
+    """Clamps the value x between a minimum and a maximum."""
+
+    assert (minimum <= maximum)
+    return max(minimum, min(maximum, x))
 
 class Helper:
     focus_slider = None
@@ -30,9 +35,4 @@ class Helper:
         LEFT = 0
         RIGHT = 1
 
-    def clamp(x, minimum, maximum):
-        """Clamps the value x between a minimum and a maximum."""
-
-        assert (minimum <= maximum)
-        return max(minimum, min(maximum, x))
 
