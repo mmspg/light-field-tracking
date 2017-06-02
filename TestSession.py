@@ -4,7 +4,11 @@ from helper import BG_COLOR, NB_IMAGES_PRELOADED, f_tracking, f_answers, Helper
 
 
 class TestSession:
-    """Represents a test session for the assessment of light field images."""
+    """Represents a test session for the assessment of light field images.
+
+    This class controls which LF image is displayed, handles user input by transmitting it
+    to the current LF image if necessary, and writes the grades given to the output file, among other things.
+    """
 
     def __init__(self, images, question, possible_answers, answers_description, show_preview, preload_images, test_image_side):
         """Initializes a test session.
@@ -41,7 +45,7 @@ class TestSession:
         if self.preload_images:
             # Loads the first few images asynchronously
             for i in range(NB_IMAGES_PRELOADED + 1):
-                print("Loading image {}/{}...".format(i+1, len(self.images)))
+                print("Loading image {}/{}...".format(i + 1, len(self.images)))
                 self.images[i].load_images()
 
         if show_preview:
@@ -82,8 +86,8 @@ class TestSession:
         self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
         self.img_index_label.grid(row=0, column=0, columnspan=3)
 
-        test_col = 2*self.test_image_side.value
-        ref_col = 2-test_col
+        test_col = 2 * self.test_image_side.value
+        ref_col = 2 - test_col
         tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=1, column=test_col, pady=5)
         tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=1, column=ref_col, pady=5)
 
@@ -101,7 +105,8 @@ class TestSession:
 
         # Scale (a.k.a. slider) to perform refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
-        self.focus_slider = tk.Scale(focus_frame, from_=self.cur_img.nb_img_depth - 1, to=0, command=self.slider_refocus_to_depth,
+        self.focus_slider = tk.Scale(focus_frame, from_=self.cur_img.nb_img_depth - 1, to=0,
+                                     command=self.slider_refocus_to_depth,
                                      showvalue=0, length=200, background=BG_COLOR)
         self.focus_slider.grid(row=1, column=0)
         tk.Label(focus_frame, text="Far", background=BG_COLOR).grid(row=0, column=0)

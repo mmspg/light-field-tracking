@@ -25,7 +25,7 @@ class LFImage:
         """
 
         self.img_name = img_name
-        self.reference_img_name = img_name.split("R")[0]+"R0"
+        self.reference_img_name = img_name.split("R")[0] + "R0"
         self.nb_img_x = nb_img_x
         self.nb_img_y = nb_img_y
         self.nb_img_depth = nb_img_depth
@@ -70,7 +70,6 @@ class LFImage:
 
     def move(self, move_pos):
         """Change the image displayed w.r.t. the mouse position.
-
         This method should be called when the mouse is dragged over an image.
 
         :param move_pos: The current position of the mouse.
@@ -83,11 +82,11 @@ class LFImage:
             img_diff_y = int(round(diff_y / float(self.unit)))
 
             next_img_x = clamp(self.base_img.x + img_diff_x,
-                                      self.top_left[0],
-                                      self.top_left[0] + self.nb_img_x - 1)
+                               self.top_left[0],
+                               self.top_left[0] + self.nb_img_x - 1)
             next_img_y = clamp(self.base_img.y + img_diff_y,
-                                      self.top_left[1],
-                                      self.top_left[1] + self.nb_img_y - 1)
+                               self.top_left[1],
+                               self.top_left[1] + self.nb_img_y - 1)
             self.next_img = SubapertureImage(next_img_x, next_img_y, None)
 
             self.update_images()
@@ -110,7 +109,7 @@ class LFImage:
         :param event: The event that triggered the refocusing and contains the point coordinates
         """
         depth_map_value = self.depth_map[event.x, event.y] / 255
-        focus_depth = round(depth_map_value * (self.nb_img_depth-1))
+        focus_depth = round(depth_map_value * (self.nb_img_depth - 1))
         self.refocus_animation(focus_depth)
 
     def refocus_animation(self, depth):
@@ -120,11 +119,11 @@ class LFImage:
         """
         if self.cur_img.focus_depth is not None:
             if self.cur_img.focus_depth != depth:
-                depthDelta = 1 if (depth - self.cur_img.focus_depth > 0) else -1
-                new_depth = self.cur_img.focus_depth + depthDelta
+                depth_delta = 1 if (depth - self.cur_img.focus_depth > 0) else -1
+                new_depth = self.cur_img.focus_depth + depth_delta
                 self.refocus_to_depth(new_depth)
 
-                if(new_depth != depth):
+                if new_depth != depth:
                     Timer(0.01, lambda: self.refocus_animation(depth)).start()
         else:
             self.refocus_to_depth(depth)
@@ -182,7 +181,7 @@ class LFImage:
             # Load refocused images
             for depth in range(self.nb_img_depth):
                 test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.base_img.x, self.base_img.y,
-                                                                depth, IMG_FORMAT)
+                                                                 depth, IMG_FORMAT)
                 ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.x, self.base_img.y,
                                                                 depth, IMG_FORMAT)
                 self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
@@ -190,7 +189,7 @@ class LFImage:
 
             self.is_loaded = True
             # Hide loading message
-            if Helper.fullscreen_msg != None:
+            if Helper.fullscreen_msg is not None:
                 Helper.fullscreen_msg.pack_forget()
 
         t = threading.Thread(target=callback)
@@ -203,21 +202,23 @@ class LFImage:
            to the background and back to the foreground.
         """
 
-        def preview_inner(index, preview_images_list):
-            """Displays the images given by 'preview_images_list', starting at position 'index'"""
-            self.next_img = preview_images_list[index]
+        def preview_inner(index, preview_images):
+            """Displays the images given by 'preview_images', starting at position 'index'.
+            :param index: Index of the first image to display.
+            :param preview_images: List of images to show in the preview.
+            """
+            self.next_img = preview_images[index]
             self.update_images()
 
-            if index+1 < len(preview_images_list):
+            if index + 1 < len(preview_images):
                 timeout = time_per_image if (self.next_img.focus_depth is None) else time_per_image_refocus
-                Timer(timeout, lambda: preview_inner(index+1, preview_images_list)).start()
+                Timer(timeout, lambda: preview_inner(index + 1, preview_images)).start()
             else:
                 # End the preview and display the base image
                 self.is_preview_running = False
                 self.next_img = self.base_img
-                #self.cur_time = 0
+                # self.cur_time = 0
                 self.update_images()
-
 
         # List of images ordered for the preview
         preview_images_list = []
@@ -231,20 +232,19 @@ class LFImage:
             preview_images_list.append(next_img)
 
             for _ in range(start, end):
-                next_img = SubapertureImage(next_img.x+delta_x, next_img.y, None)
+                next_img = SubapertureImage(next_img.x + delta_x, next_img.y, None)
                 preview_images_list.append(next_img)
 
             delta_x = -delta_x
 
-        for d in range(0, 2*self.nb_img_depth -1):
-            depth = d if (d < self.nb_img_depth) else 2*self.nb_img_depth - 2 - d
+        for d in range(0, 2 * self.nb_img_depth - 1):
+            depth = d if (d < self.nb_img_depth) else 2 * self.nb_img_depth - 2 - d
             next_img = SubapertureImage(self.base_img.x, self.base_img.y, depth)
             preview_images_list.append(next_img)
 
         # Start the preview
         self.is_preview_running = True
         preview_inner(0, preview_images_list)
-
 
     def close_img(self):
         """Perform actions necessary when and image is replaced by another.
@@ -257,7 +257,7 @@ class LFImage:
         if self.prev_time != 0:
             onscreen = self.cur_time - self.prev_time
             self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
-            #total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
+            # total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
 
             test_img_name, _ = self.get_cur_img_names()
 
@@ -276,7 +276,8 @@ class LFImage:
         if self.cur_img.focus_depth is None:
             # Normal image
             test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
-            ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
+            ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
+                                                      IMG_FORMAT)
 
         else:
             # Refocused image
@@ -285,7 +286,7 @@ class LFImage:
             ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
                                                             self.cur_img.focus_depth, IMG_FORMAT)
 
-        return (test_img_name, ref_img_name)
+        return test_img_name, ref_img_name
 
     def clear_memory(self):
         """Dereference the arrays of images loaded so that they are cleared by the garbage collector"""
@@ -299,13 +300,13 @@ class LFImage:
     def set_panels(self, panels):
         """Configure the LFImage to use the given panels for display.
         
-        :param panels: 
+        :param panels: Panels on which the images will be displayed
         """
         self.panels = panels
 
     def set_test_image_side(self, side):
-        """Configure the LFImage to use the given panels for display.
+        """Set the side on which the test image should be displayed.
 
-        :param panels: 
+        :param side: Side on which the test image should be displayed.
         """
         self.test_image_side = side

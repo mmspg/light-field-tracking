@@ -2,6 +2,12 @@ class SubapertureImage:
     """"Represents a sub-aperture image via its coordinates"""
 
     def __init__(self, x, y, focus_depth):
+        """Initializes a sub-aperture image.
+
+        :param x:
+        :param y:
+        :param focus_depth:
+        """
         self.x = x
         self.y = y
         self.focus_depth = focus_depth

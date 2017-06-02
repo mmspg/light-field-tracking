@@ -2,9 +2,9 @@ from LFImage import LFImage
 from TestSession import TestSession
 from helper import Helper
 
-#---------------
-#-- MAIN CODE --
-#---------------
+# ---------------
+# -- MAIN CODE --
+# ---------------
 
 images = []
 images.append(LFImage("I01R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
