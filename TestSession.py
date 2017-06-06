@@ -1,6 +1,7 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 
-from helper import BG_COLOR, NB_IMAGES_PRELOADED, f_tracking, f_answers, Helper
+from helper import BG_COLOR, NB_IMAGES_PRELOADED, IMG_PATH_PREFIX, f_tracking, f_answers, Helper
 
 
 class TestSession:
@@ -42,6 +43,8 @@ class TestSession:
         self.root.configure(background=BG_COLOR)
         self.root.geometry("{0}x{1}+0+0".format(self.root.winfo_screenwidth(), self.root.winfo_screenheight()))
 
+        self.logo_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + "mmspg.png"))
+
         if self.preload_images:
             # Loads the first few images asynchronously
             for i in range(NB_IMAGES_PRELOADED + 1):
@@ -51,7 +54,12 @@ class TestSession:
         if show_preview:
             self.start_btn = tk.Button(self.root, text="START", command=self.start_session,
                                        highlightbackground=BG_COLOR)
-            self.start_btn.pack(expand=True)
+            self.start_btn.pack(expand=True, anchor="center")
+
+            self.logo_start = tk.Label(self.root, background=BG_COLOR)
+            self.logo_start.configure(image=self.logo_img)
+            self.logo_start.pack(side="bottom")
+
         else:
             self.start_session()
 
@@ -73,6 +81,7 @@ class TestSession:
         # Start by either showing the preview or the normal interactive view
         if self.show_preview:
             self.start_btn.destroy()
+            self.logo_start.destroy()
             self.cur_img.preview()
         else:
             self.cur_img.update_images()
@@ -140,8 +149,14 @@ class TestSession:
 
         self.display_img_index()
 
+        # Information message used when loading inmage and when the test session ends
         Helper.fullscreen_msg = tk.Label(self.root, text="", background=BG_COLOR)
         Helper.fullscreen_msg.pack_forget()
+
+        # MMSPG Logo
+        logo_label = tk.Label(self.root, background=BG_COLOR)
+        logo_label.configure(image=self.logo_img)
+        logo_label.pack(side="bottom", anchor="e")
 
     def next_img(self):
         """Displays the next image"""
@@ -239,5 +254,5 @@ class TestSession:
         f_answers.flush()
         f_answers.close()
 
-        Helper.fullscreen_msg.config(text="FINISHED")
+        Helper.fullscreen_msg.config(text="Thank you!")
         Helper.fullscreen_msg.pack(fill="both", expand="true")
