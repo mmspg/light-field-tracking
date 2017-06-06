@@ -81,10 +81,10 @@ class LFImage:
             img_diff_x = int(round(diff_x / float(self.unit)))
             img_diff_y = int(round(diff_y / float(self.unit)))
 
-            next_img_x = clamp(self.base_img.x + img_diff_x,
+            next_img_x = clamp(self.base_img.u + img_diff_x,
                                self.top_left[0],
                                self.top_left[0] + self.nb_img_x - 1)
-            next_img_y = clamp(self.base_img.y + img_diff_y,
+            next_img_y = clamp(self.base_img.v + img_diff_y,
                                self.top_left[1],
                                self.top_left[1] + self.nb_img_y - 1)
             self.next_img = SubapertureImage(next_img_x, next_img_y, None)
@@ -143,8 +143,8 @@ class LFImage:
 
             if self.cur_img.focus_depth is None:
                 # Display a normal image
-                new_test_img = self.test_images[self.cur_img.x][self.cur_img.y]
-                new_ref_img = self.ref_images[self.cur_img.x][self.cur_img.y]
+                new_test_img = self.test_images[self.cur_img.u][self.cur_img.v]
+                new_ref_img = self.ref_images[self.cur_img.u][self.cur_img.v]
 
             else:
                 # Display a refocused image
@@ -156,10 +156,10 @@ class LFImage:
             # Load the images if they were not already loaded
             if new_test_img is None:
                 new_test_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
-                self.test_images[self.cur_img.x][self.cur_img.y] = new_test_img
+                self.test_images[self.cur_img.u][self.cur_img.v] = new_test_img
             if new_ref_img is None:
                 new_ref_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
-                self.ref_images[self.cur_img.x][self.cur_img.y] = new_ref_img
+                self.ref_images[self.cur_img.u][self.cur_img.v] = new_ref_img
 
             # Set the test and reference image on the correct side (left=0, right=1)
             self.panels[self.test_image_side.value].configure(image=new_test_img)
@@ -180,9 +180,9 @@ class LFImage:
 
             # Load refocused images
             for depth in range(self.nb_img_depth):
-                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.base_img.x, self.base_img.y,
+                test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.base_img.u, self.base_img.v,
                                                                  depth, IMG_FORMAT)
-                ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.x, self.base_img.y,
+                ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.u, self.base_img.v,
                                                                 depth, IMG_FORMAT)
                 self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
                 self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
@@ -228,18 +228,18 @@ class LFImage:
 
         # Set the order of images for the preview
         for y in range(start, end + 1):
-            next_img = SubapertureImage(next_img.x, y, None)
+            next_img = SubapertureImage(next_img.u, y, None)
             preview_images_list.append(next_img)
 
             for _ in range(start, end):
-                next_img = SubapertureImage(next_img.x + delta_x, next_img.y, None)
+                next_img = SubapertureImage(next_img.u + delta_x, next_img.v, None)
                 preview_images_list.append(next_img)
 
             delta_x = -delta_x
 
         for d in range(0, 2 * self.nb_img_depth - 1):
             depth = d if (d < self.nb_img_depth) else 2 * self.nb_img_depth - 2 - d
-            next_img = SubapertureImage(self.base_img.x, self.base_img.y, depth)
+            next_img = SubapertureImage(self.base_img.u, self.base_img.v, depth)
             preview_images_list.append(next_img)
 
         # Start the preview
@@ -256,8 +256,8 @@ class LFImage:
 
         if self.prev_time != 0:
             onscreen = self.cur_time - self.prev_time
-            self.img_onscreen[self.cur_img.x][self.cur_img.y] += onscreen
-            # total_onscreen = self.img_onscreen[self.cur_img.x][self.cur_img.y]
+            self.img_onscreen[self.cur_img.u][self.cur_img.v] += onscreen
+            # total_onscreen = self.img_onscreen[self.cur_img.u][self.cur_img.v]
 
             test_img_name, _ = self.get_cur_img_names()
 
@@ -275,15 +275,15 @@ class LFImage:
 
         if self.cur_img.focus_depth is None:
             # Normal image
-            test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y, IMG_FORMAT)
-            ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
+            test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, self.cur_img.u, self.cur_img.v, IMG_FORMAT)
+            ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.u, self.cur_img.v,
                                                       IMG_FORMAT)
 
         else:
             # Refocused image
-            test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.x, self.cur_img.y,
+            test_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.img_name, self.cur_img.u, self.cur_img.v,
                                                              self.cur_img.focus_depth, IMG_FORMAT)
-            ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.x, self.cur_img.y,
+            ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.cur_img.u, self.cur_img.v,
                                                             self.cur_img.focus_depth, IMG_FORMAT)
 
         return test_img_name, ref_img_name
