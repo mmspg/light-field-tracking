@@ -35,4 +35,6 @@ class Helper:
         LEFT = 0
         RIGHT = 1
 
-
+    class IQA(Enum):
+        SINGLE_STIMULUS = 1
+        DOUBLE_STIMULUS = 2

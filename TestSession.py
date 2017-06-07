@@ -11,7 +11,8 @@ class TestSession:
     to the current LF image if necessary, and writes the grades given to the output file, among other things.
     """
 
-    def __init__(self, images, question, possible_answers, answers_description, show_preview, preload_images, test_image_side):
+    def __init__(self, images, question, possible_answers, answers_description,
+                 show_preview, preload_images, assessment_method, test_image_side=None):
         """Initializes a test session.
 
         :param images: The light-field images to use for the test session.
@@ -20,6 +21,8 @@ class TestSession:
         :param answers_description: The descriptions corresponding to each of the answers in possible_answers.
         :param show_preview: if True, show the preview animation for each image
         :param preload_images: if True, preloads the images for a smoother experience (recommended)
+        :param assessment_method: Assessment method to be used in the test session.
+                                  It should be either Helper.IQA.SINGLE_STIMULUS or Helper.IQA.SINGLE_STIMULUS
         :param test_image_side: Side on which the test image should be displayed.
                                 This should be either Helper.Side.LEFT or Helper.Side.Right
         """
@@ -30,6 +33,7 @@ class TestSession:
         self.answers_description = answers_description
         self.show_preview = show_preview
         self.preload_images = preload_images
+        self.assessment_method = assessment_method
         self.test_image_side = test_image_side
         self.panels = None
         self.img_index = 0
@@ -49,7 +53,7 @@ class TestSession:
             # Loads the first few images asynchronously
             for i in range(NB_IMAGES_PRELOADED + 1):
                 print("Loading image {}/{}...".format(i + 1, len(self.images)))
-                self.images[i].load_images()
+                self.images[i].load_images(self.assessment_method)
 
         if show_preview:
             self.start_btn = tk.Button(self.root, text="START", command=self.start_session,
@@ -95,22 +99,32 @@ class TestSession:
         self.img_index_label = tk.Label(main_frame, background=BG_COLOR, pady=10)
         self.img_index_label.grid(row=0, column=0, columnspan=3)
 
+        # Display "Test" and "Reference" labels
+        test_label = tk.Label(main_frame, background=BG_COLOR)
+        ref_label = tk.Label(main_frame, background=BG_COLOR)
+        if self.assessment_method is Helper.IQA.DOUBLE_STIMULUS:
+            test_label.configure(text="Test")
+            ref_label.configure(text="Reference")
+
         test_col = 2 * self.test_image_side.value
         ref_col = 2 - test_col
-        tk.Label(main_frame, text="Test", background=BG_COLOR).grid(row=1, column=test_col, pady=5)
-        tk.Label(main_frame, text="Reference", background=BG_COLOR).grid(row=1, column=ref_col, pady=5)
+        test_label.grid(row=1, column=test_col, pady=5)
+        ref_label.grid(row=1, column=ref_col, pady=5)
 
-        # Panels where the two images are displayed
-        self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
-        self.panels[0].grid(row=2, column=0)
-        self.panels[1].grid(row=2, column=2)
+        # Panel(s) where the image(s) is(are) displayed
+        if self.assessment_method is Helper.IQA.DOUBLE_STIMULUS:
+            self.panels = [tk.Label(main_frame, background=BG_COLOR), tk.Label(main_frame, background=BG_COLOR)]
+            self.panels[0].grid(row=2, column=0)
+            self.panels[1].grid(row=2, column=2)
+        elif self.assessment_method is Helper.IQA.SINGLE_STIMULUS:
+            self.panels = [tk.Label(main_frame, background=BG_COLOR)]
+            self.panels[0].grid(row=2, column=0)
 
-        self.panels[0].bind('<Button-1>', self.click)
-        self.panels[0].bind('<B1-Motion>', self.move)
-        self.panels[0].bind('<Double-Button-1>', self.refocus_to_point)
-        self.panels[1].bind('<Button-1>', self.click)
-        self.panels[1].bind('<B1-Motion>', self.move)
-        self.panels[1].bind('<Double-Button-1>', self.refocus_to_point)
+
+        for panel in self.panels:
+            panel.bind('<Button-1>', self.click)
+            panel.bind('<B1-Motion>', self.move)
+            panel.bind('<Double-Button-1>', self.refocus_to_point)
 
         # Scale (a.k.a. slider) to perform refocusing
         focus_frame = tk.Frame(main_frame, background=BG_COLOR, padx=5)
@@ -177,7 +191,7 @@ class TestSession:
                 # Preload the following image already
                 if self.img_index + NB_IMAGES_PRELOADED < len(self.images):
                     print("Loading image {}/{}...".format(self.img_index + NB_IMAGES_PRELOADED + 1, len(self.images)))
-                    self.images[self.img_index + NB_IMAGES_PRELOADED].load_images()
+                    self.images[self.img_index + NB_IMAGES_PRELOADED].load_images(self.assessment_method)
 
             self.display_img_index()
             f_tracking.write("\n")

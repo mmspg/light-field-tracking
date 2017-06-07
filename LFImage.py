@@ -98,7 +98,9 @@ class LFImage:
         :param focus_depth: The depth to focus to image on.
         """
         if not self.is_preview_running:
-            self.next_img = SubapertureImage(self.nb_img_x // 2, self.nb_img_y // 2, int(focus_depth))
+            self.next_img = SubapertureImage(self.top_left[0] + self.nb_img_x // 2,
+                                             self.top_left[1] + self.nb_img_y // 2,
+                                             int(focus_depth))
             self.update_images()
 
             self.set_focus_slider_value(focus_depth)
@@ -157,17 +159,22 @@ class LFImage:
             if new_test_img is None:
                 new_test_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
                 self.test_images[self.cur_img.u][self.cur_img.v] = new_test_img
-            if new_ref_img is None:
+            if new_ref_img is None and len(self.panels) == 2:
+                # The reference image is only needed for the double stimulus method
                 new_ref_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
                 self.ref_images[self.cur_img.u][self.cur_img.v] = new_ref_img
 
-            # Set the test and reference image on the correct side (left=0, right=1)
-            self.panels[self.test_image_side.value].configure(image=new_test_img)
-            self.panels[self.test_image_side.value].image = new_test_img
-            self.panels[(self.test_image_side.value + 1) % 2].configure(image=new_ref_img)
-            self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
+            if len(self.panels) == 2: # Double stimulus
+                # Set the test and reference image on the correct side (left=0, right=1)
+                self.panels[self.test_image_side.value].configure(image=new_test_img)
+                self.panels[self.test_image_side.value].image = new_test_img
+                self.panels[(self.test_image_side.value + 1) % 2].configure(image=new_ref_img)
+                self.panels[(self.test_image_side.value + 1) % 2].image = new_ref_img
+            elif len(self.panels) == 1: # Single stimulus
+                self.panels[0].configure(image=new_test_img)
+                self.panels[0].image = new_test_img
 
-    def load_images(self):
+    def load_images(self, assessment_method):
         def callback():
 
             # Load normal images
@@ -175,8 +182,12 @@ class LFImage:
                 for y in range(self.top_left[1], self.top_left[1] + self.nb_img_y):
                     test_img_name = '{}/{:03}_{:03}.{}'.format(self.img_name, x, y, IMG_FORMAT)
                     ref_img_name = '{}/{:03}_{:03}.{}'.format(self.reference_img_name, x, y, IMG_FORMAT)
-                    self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+
                     self.test_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
+
+                    # The reference image is only needed for the double stimulus method
+                    if assessment_method is Helper.IQA.DOUBLE_STIMULUS:
+                        self.ref_images[x][y] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
 
             # Load refocused images
             for depth in range(self.nb_img_depth):
@@ -185,7 +196,9 @@ class LFImage:
                 ref_img_name = '{}/{:03}_{:03}_{:03}.{}'.format(self.reference_img_name, self.base_img.u, self.base_img.v,
                                                                 depth, IMG_FORMAT)
                 self.test_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + test_img_name))
-                self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
+                # The reference image is only needed for the double stimulus method
+                if assessment_method is Helper.IQA.DOUBLE_STIMULUS:
+                    self.ref_images_refocus[depth] = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + ref_img_name))
 
             self.is_loaded = True
             # Hide loading message

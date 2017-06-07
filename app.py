@@ -34,4 +34,5 @@ answers_description = ["Very annoying",
                        "Imperceptible"]
 
 TestSession(images, question, answers, answers_description,
-            show_preview=True, preload_images=False, test_image_side=Helper.Side.LEFT)
+            show_preview=False, preload_images=True,
+            assessment_method= Helper.IQA.DOUBLE_STIMULUS, test_image_side=Helper.Side.LEFT)
