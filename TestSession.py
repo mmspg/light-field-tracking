@@ -170,7 +170,7 @@ class TestSession:
         # MMSPG Logo
         logo_label = tk.Label(self.root, background=BG_COLOR)
         logo_label.configure(image=self.logo_img)
-        logo_label.pack(side="bottom", anchor="e")
+        logo_label.place(anchor="se", relx=1, rely=1)
 
     def next_img(self):
         """Displays the next image"""
@@ -210,13 +210,16 @@ class TestSession:
         
         :param answ: The answer.
         """
-        self.answers[self.img_index] = answ
-        f_answers.write("{:30}: {}\n".format(self.cur_img.img_name, answ))
 
-        if self.is_last_image():
-            self.finish_test_session()
-        else:
-            self.next_img()
+        # The user cannot answer during the preview, or when the images are not yet loaded
+        if self.cur_img.is_loaded and not self.cur_img.is_preview_running:
+            self.answers[self.img_index] = answ
+            f_answers.write("{:30}: {}\n".format(self.cur_img.img_name, answ))
+
+            if self.is_last_image():
+                self.finish_test_session()
+            else:
+                self.next_img()
 
     def click(self, event):
         """Method  called whenever an image is clicked on."""

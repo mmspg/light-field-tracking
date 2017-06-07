@@ -7,11 +7,12 @@ from helper import Helper
 # ---------------
 
 images = []
+# Add the images to be tested here
 images.append(LFImage("I01R2", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
 images.append(LFImage("I02R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
 images.append(LFImage("I04R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
 images.append(LFImage("I09R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
-images.append(LFImage("I10R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
+#images.append(LFImage("I10R1", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3)))
 
 # images.append(LFImage("I01R2", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
 # images.append(LFImage("I02R2", nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3,3)))
