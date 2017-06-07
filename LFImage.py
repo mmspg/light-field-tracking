@@ -21,7 +21,7 @@ class LFImage:
         :param base_img: The Point representing the first image to display. 
                          If it is None, the middle center image is taken.
         :param focus_depth: The initial depth that should be in focus.
-        :param unit: The number of pixels one should move the mouse to switch to the next image.
+        :param unit: The number of pixels one should move the mouse to switch to another viewpoint.
         """
 
         self.img_name = img_name
@@ -247,7 +247,7 @@ class LFImage:
         preview_inner(0, preview_images_list)
 
     def close_img(self):
-        """Perform actions necessary when and image is replaced by another.
+        """Perform actions necessary when an image is replaced by another.
         
         This method is used to write the end time and on-screen time in the tracking.txt file.
         """
