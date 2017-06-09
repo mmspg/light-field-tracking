@@ -49,7 +49,6 @@ class LFImage:
         self.cur_img = None
         self.next_img = self.base_img
         self.depth_map = Image.open("{}/depth_map/{}.{}".format(IMG_PATH_PREFIX, self.reference_img_name, IMG_FORMAT)).load()
-        self.img_onscreen = [[datetime.timedelta(0) for _ in range(top_left[0] + nb_img_x)] for _ in range(top_left[1] + nb_img_y)]
         self.click_pos = (0, 0)
         self.prev_time = 0
         self.cur_time = 0
@@ -269,8 +268,6 @@ class LFImage:
 
         if self.prev_time != 0:
             onscreen = self.cur_time - self.prev_time
-            self.img_onscreen[self.cur_img.u][self.cur_img.v] += onscreen
-            # total_onscreen = self.img_onscreen[self.cur_img.u][self.cur_img.v]
 
             test_img_name, _ = self.get_cur_img_names()
 
