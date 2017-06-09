@@ -12,7 +12,7 @@ class TestSession:
     """
 
     def __init__(self, images, question, possible_answers, answers_description,
-                 show_preview, preload_images, assessment_method, test_image_side=None):
+                 show_preview, preload_images, assessment_method, test_image_side=Helper.Side.LEFT):
         """Initializes a test session.
 
         :param images: The light-field images to use for the test session.

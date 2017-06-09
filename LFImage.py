@@ -11,14 +11,15 @@ from helper import IMG_PATH_PREFIX, IMG_FORMAT, f_tracking, clamp, Helper
 class LFImage:
     """"Represents a light-field image."""
 
-    def __init__(self, img_name, nb_img_x, nb_img_y, nb_img_depth, top_left, base_img=None, focus_depth=None, unit=20):
+    def __init__(self, img_name, nb_img_x=9, nb_img_y=9, nb_img_depth=11, top_left=(3, 3), base_img=None, focus_depth=None, unit=20):
         """Initializes a light-field image.
         
         :param img_name: The name of the image (i.e. of the folder containing all its image files).
         :param nb_img_x: The number of images in the x-axis.
         :param nb_img_y: The number of images in the y-axis.
         :param nb_img_depth: The number of depth images (i.e. z-axis)
-        :param base_img: The Point representing the first image to display. 
+        :param top_left: The coordinates of the top-left viewpoint
+        :param base_img: The Point representing the first image to display.
                          If it is None, the middle center image is taken.
         :param focus_depth: The initial depth that should be in focus.
         :param unit: The number of pixels one should move the mouse to switch to another viewpoint.
