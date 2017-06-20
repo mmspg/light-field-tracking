@@ -47,7 +47,7 @@ class TestSession:
         self.root.configure(background=BG_COLOR)
         self.root.geometry("{0}x{1}+0+0".format(self.root.winfo_screenwidth(), self.root.winfo_screenheight()))
 
-        self.logo_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + "mmspg.png"))
+        self.logo_img = ImageTk.PhotoImage(Image.open(IMG_PATH_PREFIX + "epfl-mmspg.png"))
 
         if self.preload_images:
             # Loads the first few images asynchronously
